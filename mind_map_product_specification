@@ -1,0 +1,51 @@
+mind_map_product_specification
+
+This is mind map for product specification, v1.0
+
+it is a classical mind map product
+it is a web application
+in v1.0 we want to host it locally only
+it is a single page application
+it is a product for personal use
+
+features:
+
+app will start with a mind map with single node
+user can add nodes to the mind map
+user can delete nodes from the mind map
+user can edit nodes in the mind map
+user can move nodes in the mind map
+
+each node can have:
+- text
+- color
+- sub nodes
+- border line style (solid, dashed, dotted)
+- arrows to sub nodes
+- arrow line style (solid, dashed, dotted)
+- nodes will be draggable
+- nodes will have round corners
+
+if a user hovers a node, it will show a + icon on 4 sides of the node
+if a user clicks on one of the + icons, it will add a new node to the mind map
+when a new node is added, it will come with arrows from the parent node
+moving a node will also move the arrows from the parent node
+
+
+user can save/export the mind map
+user can load/import the mind map
+
+there will a static left pane
+left pane will have 
+- save button 
+- load button
+
+task list:
+1. [] determine the tech stack
+2. [] create a mind map with single node
+3. [] make the node text editable
+4. [] make the node draggable
+5. [] add + icons on the node when hovered
+6. [] add a new node to the mind map when + icon is clicked with the arrow 
+7. [] make sure when the node is dragged, the arrow is also dragged
+8. [] add the save and load functionality

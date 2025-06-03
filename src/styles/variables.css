@@ -1,0 +1,30 @@
+:root {
+  /* Colors */
+  --color-primary: #007bff;
+  --color-primary-hover: #0056b3;
+  --color-border: #333;
+  --color-border-light: #ddd;
+  --color-background: #f0f0f0;
+  --color-text: #333;
+  --color-focus: #01cece;
+  --color-hover: #b70000;
+  
+  /* Typography */
+  --font-family: 'Calibri', 'Candara', 'Segoe', 'Segoe UI', 'Optima', 'Arial', sans-serif;
+  --font-size-base: 16px;
+  --line-height-base: 1.5;
+  
+  /* Spacing */
+  --border-radius: 20px;
+  --border-radius-sm: 4px;
+  --spacing-xs: 5px;
+  --spacing-sm: 10px;
+  --spacing-md: 20px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.2);
+  
+  /* Transitions */
+  --transition: all 0.2s ease;
+}

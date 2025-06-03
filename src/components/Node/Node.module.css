@@ -1,0 +1,40 @@
+@import '../../styles/variables.css';
+
+.node {
+  min-width: 150px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: var(--color-background);
+  border-radius: var(--border-radius);
+  padding: 0 var(--spacing-sm);
+  border: 2px solid var(--color-border);
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: move;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.1s ease-out, box-shadow var(--transition);
+  box-sizing: border-box;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-origin: center;
+  user-select: none;
+}
+
+.node:hover {
+  border-color: var(--color-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.node:active {
+  border-color: var(--color-hover);
+  box-shadow: var(--shadow-md);
+  transition: none;
+}
+
+.isEditing {
+  cursor: text;
+}
