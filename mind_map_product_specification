@@ -41,10 +41,10 @@ left pane will have
 - load button
 
 task list:
-1. [] determine the tech stack
-2. [] create a mind map with single node
-3. [] make the node text editable
-4. [] make the node draggable
+1. [+] determine the tech stack
+2. [+] create a mind map with single node
+3. [+] make the node text editable
+4. [+] make the node draggable
 5. [] add + icons on the node when hovered
 6. [] add a new node to the mind map when + icon is clicked with the arrow 
 7. [] make sure when the node is dragged, the arrow is also dragged

@@ -5,8 +5,10 @@ import styles from './Node.module.css';
 // Move these outside the component to prevent recreation
 const noop = () => {};
 
-function Node({ text, onTextChange, leftPanelWidth }) {
+function Node({ text, onTextChange, leftPanelWidth, onAddNode }) { // Added onAddNode prop
   const [isEditing, setIsEditing] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hoveredDirection, setHoveredDirection] = useState(null);
   const nodeRef = useRef(null);
   const dragState = useRef({
     isDragging: false,
@@ -26,6 +28,9 @@ function Node({ text, onTextChange, leftPanelWidth }) {
   const handleMouseMove = useCallback((e) => {
     if (!dragState.current.isDragging) return;
     
+    // Ensure hover state is false during drag
+    setIsHovered(false);
+    
     const { offsetX, offsetY } = dragState.current;
     const node = nodeRef.current;
     if (!node) return;
@@ -35,7 +40,6 @@ function Node({ text, onTextChange, leftPanelWidth }) {
     
     position.current = { x: newX, y: newY };
     
-    // Use requestAnimationFrame for smoother animation
     requestAnimationFrame(() => {
       node.style.transform = `translate(${newX}px, ${newY}px)`;
     });
@@ -45,7 +49,13 @@ function Node({ text, onTextChange, leftPanelWidth }) {
   const handleMouseUp = useCallback(() => {
     dragState.current.isDragging = false;
     document.body.style.cursor = 'default';
-  }, []);
+    
+    // Restore hover state if mouse is still over the node
+    const node = nodeRef.current;
+    if (node && node.matches(':hover') && !isEditing) {
+      setIsHovered(true);
+    }
+  }, [isEditing]);
 
   const handleMouseDown = useCallback((e) => {
     if (isEditing) return;
@@ -96,6 +106,9 @@ function Node({ text, onTextChange, leftPanelWidth }) {
     };
   }, [isEditing]);
 
+  // Computed value to determine if add buttons should be shown
+  const showAddButtons = !isEditing && !dragState.current.isDragging;
+
   // Initialize node position on mount
   useEffect(() => {
     const node = nodeRef.current;
@@ -123,16 +136,27 @@ function Node({ text, onTextChange, leftPanelWidth }) {
     }
   }, [leftPanelWidth]);
 
+  const handleAddNodeClick = (direction) => {
+    // This will be implemented in task 6
+    console.log(`Add node: ${direction}`);
+    // if (onAddNode) {
+    //   onAddNode(direction); // Pass direction or other relevant info
+    // }
+  };
+
   return (
     <div 
       ref={nodeRef}
-      className={`${styles.node} ${isEditing ? styles.isEditing : ''}`}
+      className={`${styles.node} ${isEditing ? styles.isEditing : ''} ${isHovered ? styles.isHovered : ''}`}
       onDoubleClick={handleDoubleClick}
       onMouseDown={handleMouseDown}
+      onMouseEnter={() => !isEditing && setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         willChange: 'transform',
         left: 0,
-        top: 0
+        top: 0,
+        position: 'absolute' // Ensure icons are positioned relative to this
       }}
     >
       <NodeText 
@@ -141,8 +165,40 @@ function Node({ text, onTextChange, leftPanelWidth }) {
         isEditing={isEditing}
         setIsEditing={setIsEditing}
       />
+      {isHovered && showAddButtons && (
+        <>
+          <button 
+            className={`${styles.addNodeButton} ${styles.top} ${hoveredDirection === 'top' ? styles.hovered : ''}`}
+            onMouseEnter={() => setHoveredDirection('top')}
+            onMouseLeave={() => setHoveredDirection(null)}
+            onClick={() => handleAddNodeClick('top')}
+            title="Add node above"
+          >+</button>
+          <button 
+            className={`${styles.addNodeButton} ${styles.right} ${hoveredDirection === 'right' ? styles.hovered : ''}`}
+            onClick={() => handleAddNodeClick('right')}
+            title="Add node to the right"
+            onMouseEnter={() => setHoveredDirection('right')}
+            onMouseLeave={() => setHoveredDirection(null)}
+          >+</button>
+          <button 
+            className={`${styles.addNodeButton} ${styles.bottom} ${hoveredDirection === 'bottom' ? styles.hovered : ''}`}
+            onClick={() => handleAddNodeClick('bottom')}
+            title="Add node below"
+            onMouseEnter={() => setHoveredDirection('bottom')}
+            onMouseLeave={() => setHoveredDirection(null)}
+          >+</button>
+          <button 
+            className={`${styles.addNodeButton} ${styles.left} ${hoveredDirection === 'left' ? styles.hovered : ''}`}
+            onClick={() => handleAddNodeClick('left')}
+            title="Add node to the left"
+            onMouseEnter={() => setHoveredDirection('left')}
+            onMouseLeave={() => setHoveredDirection(null)}
+          >+</button>
+        </>
+      )}
     </div>
   );
 }
 
-export default Node;
+export default React.memo(Node); // Memoize for performance
