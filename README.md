@@ -1,46 +1,86 @@
 # Mind Map Application
 
-A web-based mind mapping tool built with React and modern web technologies.
+A web-based mind mapping tool built with React and modern web technologies. This application allows users to create, edit, and organize ideas in a visual mind map format.
 
-## Features
+## 🚀 Features
 
+### ✅ Implemented
 - Interactive node manipulation
-- Custom styling for nodes and connections
-- Save and load functionality
-- Draggable nodes with connected arrows
-- Clean and modern UI
+- Editable node text with double-click
+- Draggable nodes with smooth transitions
+- Hover-triggered + buttons for adding child nodes
+- Clean and modern UI with smooth animations
 
-## Tech Stack
+### 🚧 In Progress
+- [ ] Add new nodes with arrow connections when + buttons are clicked
+- [ ] Maintain arrow connections when nodes are dragged
+- [ ] Save and load mind map functionality
 
-- React.js
-- React D3 Tree
-- D3.js
-- Vite
+## 🛠 Tech Stack
 
-This minimal stack provides all the necessary functionality while keeping the dependency tree small and manageable.
+- ⚛️ React 18 with Hooks
+- 🎨 CSS Modules for scoped styling
+- 🖱 Custom drag-and-drop implementation
+- 🏗 Vite for fast development and builds
+- 🎨 CSS Variables for theming
 
-## Setup
+## 🚀 Getting Started
 
-1. Install dependencies:
+### Prerequisites
+- Node.js (v16 or later)
+- npm (v8 or later) or yarn
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd mind_map
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Start development server:
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-3. Build for production:
+4. Open your browser and navigate to `http://localhost:5173`
+
+### Building for Production
+
+To create a production build:
 ```bash
 npm run build
 ```
 
-## Project Structure
+## 🏗 Project Structure
 
 ```
 src/
-├── components/     # Reusable React components
-├── context/        # Application context
-└── App.tsx         # Main application component
+├── components/         # React components
+│   ├── Node/           # Node component and styles
+│   └── NodeText/       # Node text editing component
+├── styles/             # Global styles and variables
+└── App.jsx             # Main application component
 ```
+
+## 🧪 Testing
+
+To run tests:
+```bash
+npm test
+```
+
+## 📝 Notes
+
+- The application is currently in active development
+- UI/UX improvements are ongoing
+- Performance optimizations are planned for larger mind maps
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
