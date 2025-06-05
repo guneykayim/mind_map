@@ -5,7 +5,7 @@ import styles from './Node.module.css';
 // Move these outside the component to prevent recreation
 const noop = () => {};
 
-function Node({ text, onTextChange, leftPanelWidth, onAddNode }) { // Added onAddNode prop
+function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, leftPanelWidth, setNodeRef }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredDirection, setHoveredDirection] = useState(null);
@@ -21,8 +21,6 @@ function Node({ text, onTextChange, leftPanelWidth, onAddNode }) { // Added onAd
     setIsEditing(true);
   }, []);
 
-  // Track the current position
-  const position = useRef({ x: 0, y: 0 });
 
   // Memoize the move handler to prevent recreation
   const handleMouseMove = useCallback((e) => {
@@ -38,8 +36,7 @@ function Node({ text, onTextChange, leftPanelWidth, onAddNode }) { // Added onAd
     const newX = e.clientX - offsetX - leftPanelWidth;
     const newY = e.clientY - offsetY;
     
-    position.current = { x: newX, y: newY };
-    
+    // No local position ref, just update transform
     requestAnimationFrame(() => {
       node.style.transform = `translate(${newX}px, ${newY}px)`;
     });
@@ -75,15 +72,6 @@ function Node({ text, onTextChange, leftPanelWidth, onAddNode }) { // Added onAd
       node
     };
     
-    // Initialize position if not set
-    if (position.current.x === 0 && position.current.y === 0) {
-      position.current = {
-        x: rect.left - leftPanelWidth,
-        y: rect.top
-      };
-      node.style.transform = `translate(${position.current.x}px, ${position.current.y}px)`;
-    }
-
     // Set cursor and add event listeners
     document.body.style.cursor = 'grabbing';
     document.addEventListener('mousemove', handleMouseMove);
@@ -111,8 +99,9 @@ function Node({ text, onTextChange, leftPanelWidth, onAddNode }) { // Added onAd
 
   // Initialize node position on mount
   useEffect(() => {
+    if (setNodeRef) setNodeRef(nodeRef.current);
     const node = nodeRef.current;
-    if (node && !position.current.x && !position.current.y) {
+    if (node && (!position || (position.x === 0 && position.y === 0))) {
       // Center the node in the mind map container
       const mindMap = node.closest('.mind-map');
       if (!mindMap) return;
@@ -131,44 +120,84 @@ function Node({ text, onTextChange, leftPanelWidth, onAddNode }) { // Added onAd
       const centerX = (availableWidth / 2) - (node.offsetWidth / 2) + paddingLeft;
       const centerY = (availableHeight / 2) - (node.offsetHeight / 2) + paddingTop;
       
-      position.current = { x: centerX, y: centerY };
+      if (typeof onPositionChange === 'function') {
+        onPositionChange(centerX, centerY);
+      }
       node.style.transform = `translate(${centerX}px, ${centerY}px)`;
     }
   }, [leftPanelWidth]);
 
   const handleAddNodeClick = (direction) => {
-    // This will be implemented in task 6
-    console.log(`Add node: ${direction}`);
-    // if (onAddNode) {
-    //   onAddNode(direction); // Pass direction or other relevant info
-    // }
+    if (onAddNode && id && nodeRef.current) {
+      const rect = nodeRef.current.getBoundingClientRect();
+      const mindMap = nodeRef.current.closest('.mind-map');
+      let latestX = 0, latestY = 0;
+      if (mindMap) {
+        const mindMapRect = mindMap.getBoundingClientRect();
+        latestX = rect.left - mindMapRect.left;
+        latestY = rect.top - mindMapRect.top;
+      }
+      onAddNode(id, direction, {
+        parentWidth: rect.width,
+        parentHeight: rect.height,
+        latestX,
+        latestY
+      });
+    }
+  };
+
+  // Add missing hover handlers
+  const handleMouseEnter = () => {
+    if (!isEditing) setIsHovered(true);
+  };
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
+  const handleTextChange = (newText) => {
+    setIsEditing(false);
+    if (onTextChange) {
+      onTextChange(newText);
+    }
   };
 
   return (
-    <div 
-      ref={nodeRef}
-      className={`${styles.node} ${isEditing ? styles.isEditing : ''} ${isHovered ? styles.isHovered : ''}`}
-      onDoubleClick={handleDoubleClick}
-      onMouseDown={handleMouseDown}
-      onMouseEnter={() => !isEditing && setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+    <div
+      ref={el => {
+        nodeRef.current = el;
+        if (setNodeRef) setNodeRef(el);
+      }}
+      className={
+        styles.node +
+        (isEditing ? ' ' + styles.editing : '') +
+        (isHovered ? ' ' + styles.hovered : '')
+      }
       style={{
         willChange: 'transform',
         left: 0,
         top: 0,
-        position: 'absolute' // Ensure icons are positioned relative to this
+        position: 'absolute',
+        transform: `translate(${position.x || 0}px, ${position.y || 0}px)`
       }}
+      onMouseDown={handleMouseDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <NodeText 
         text={text} 
-        onTextChange={onTextChange}
-        isEditing={isEditing}
+        isEditing={isEditing} 
         setIsEditing={setIsEditing}
+        onTextChange={onTextChange || noop}
+        onBlur={handleTextChange}
       />
       {isHovered && showAddButtons && (
         <>
           <button 
-            className={`${styles.addNodeButton} ${styles.top} ${hoveredDirection === 'top' ? styles.hovered : ''}`}
+            className={
+              styles.addNodeButton +
+              ' ' + styles.top +
+              (hoveredDirection === 'top' ? ' ' + styles.hovered : '')
+            }
             onMouseEnter={() => setHoveredDirection('top')}
             onMouseLeave={() => setHoveredDirection(null)}
             onClick={() => handleAddNodeClick('top')}

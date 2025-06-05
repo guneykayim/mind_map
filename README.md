@@ -9,10 +9,11 @@ A web-based mind mapping tool built with React and modern web technologies. This
 - Editable node text with double-click
 - Draggable nodes with smooth transitions
 - Hover-triggered + buttons for adding child nodes
+- Add new nodes when + buttons are clicked
 - Clean and modern UI with smooth animations
 
 ### 🚧 In Progress
-- [ ] Add new nodes with arrow connections when + buttons are clicked
+- [ ] Add arrow connections between nodes
 - [ ] Maintain arrow connections when nodes are dragged
 - [ ] Save and load mind map functionality
 
