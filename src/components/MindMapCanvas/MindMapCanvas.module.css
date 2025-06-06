@@ -1,0 +1,7 @@
+/* Add any specific styles for MindMapCanvas here */
+
+/* 
+  If you move .mind-map and .node-layer styles from a global CSS (like index.css or App.css)
+  to be specific to this component, you would define them here and use them in MindMapCanvas.jsx
+  e.g., className={styles.mindMap} and className={styles.nodeLayer}
+*/
