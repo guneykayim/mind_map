@@ -14,7 +14,9 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     isDragging: false,
     offsetX: 0,
     offsetY: 0,
-    node: null
+    node: null,
+    lastX: 0, // Store last calculated X
+    lastY: 0  // Store last calculated Y
   });
 
   const handleDoubleClick = useCallback(() => {
@@ -36,6 +38,10 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     const newX = e.clientX - offsetX - leftPanelWidth;
     const newY = e.clientY - offsetY;
     
+    // Store last position for mouseup
+    dragState.current.lastX = newX;
+    dragState.current.lastY = newY;
+
     // No local position ref, just update transform
     requestAnimationFrame(() => {
       node.style.transform = `translate(${newX}px, ${newY}px)`;
@@ -51,6 +57,11 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     const node = nodeRef.current;
     if (node && node.matches(':hover') && !isEditing) {
       setIsHovered(true);
+    }
+
+    // Call onPositionChange with the final position
+    if (typeof onPositionChange === 'function' && typeof dragState.current.lastX === 'number') {
+      onPositionChange(dragState.current.lastX, dragState.current.lastY);
     }
   }, [isEditing]);
 

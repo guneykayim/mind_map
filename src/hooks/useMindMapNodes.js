@@ -17,6 +17,33 @@ const initialNodes = [
 export const useMindMapNodes = () => {
   const [nodes, setNodes] = useState(initialNodes);
 
+  const findNodeById = useCallback((nodeList, nodeId) => {
+    for (const node of nodeList) {
+      if (node.id === nodeId) return node;
+      if (node.children) {
+        const found = findNodeById(node.children, nodeId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }, []);
+
+  const findNodeAndAbsPos = useCallback((targetNodeId, currentNodesParam, parentAbs = {x:0, y:0}) => {
+    const currentNodes = currentNodesParam === undefined ? nodes : currentNodesParam;
+    for (const node of currentNodes) {
+      const absX = parentAbs.x + (node.x || 0);
+      const absY = parentAbs.y + (node.y || 0);
+      if (node.id === targetNodeId) {
+        return { node, absX, absY };
+      }
+      if (node.children && node.children.length > 0) {
+        const found = findNodeAndAbsPos(targetNodeId, node.children, {x: absX, y: absY});
+        if (found) return found;
+      }
+    }
+    return null;
+  }, [nodes]);
+
   const addNode = useCallback((parentId, direction, dims = {}) => {
     const newId = generateId();
     const defaultChildWidth = 120;
@@ -48,30 +75,13 @@ export const useMindMapNodes = () => {
     }
 
     setNodes(prevNodes => {
-      function findParent(nodeList) {
-        for (const node of nodeList) {
-          if (node.id === parentId) return node;
-          if (node.children) {
-            const found = findParent(node.children);
-            if (found) return found;
-          }
-        }
-        return null;
-      }
-      const parentNode = findParent(prevNodes);
-      let deltaX = 0, deltaY = 0;
-      if (parentNode && typeof dims.latestX === 'number' && typeof dims.latestY === 'number') {
-        deltaX = dims.latestX - (parentNode.x || 0);
-        deltaY = dims.latestY - (parentNode.y || 0);
-      }
-
-      const updateNodeTree = (currentNodes) => currentNodes.map(node => {
+      const updateNodeTree = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
         if (node.id === parentId) {
           const newNode = {
             id: newId,
             text: 'New Node',
-            x: x + deltaX,
-            y: y + deltaY,
+            x: x, 
+            y: y, 
             children: []
           };
           return {
@@ -91,11 +101,38 @@ export const useMindMapNodes = () => {
     });
   }, [setNodes]);
 
-  const updateNodePosition = useCallback((nodeId, newX, newY) => {
+  const updateNodePosition = useCallback((nodeId, newRelativeX, newRelativeY) => {
     setNodes(prevNodes => {
-      const updatePosRecursive = (currentNodes) => currentNodes.map(node => {
+      const draggedNodePreviousState = findNodeById(prevNodes, nodeId);
+
+      if (!draggedNodePreviousState) {
+        console.warn(`Node with id ${nodeId} not found in prevNodes for position update. Performing simple update.`);
+        const fallbackRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
+          if (node.id === nodeId) {
+            return { ...node, x: newRelativeX, y: newRelativeY };
+          }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: fallbackRecursive(node.children) };
+          }
+          return node;
+        });
+        return fallbackRecursive(prevNodes);
+      }
+
+      const oldX = draggedNodePreviousState.x || 0;
+      const oldY = draggedNodePreviousState.y || 0;
+
+      const deltaX = newRelativeX - oldX;
+      const deltaY = newRelativeY - oldY;
+
+      const updatePosRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
         if (node.id === nodeId) {
-          return { ...node, x: newX, y: newY };
+          const updatedChildren = (node.children || []).map(child => ({
+            ...child,
+            x: (child.x || 0) - deltaX,
+            y: (child.y || 0) - deltaY,
+          }));
+          return { ...node, x: newRelativeX, y: newRelativeY, children: updatedChildren };
         }
         if (node.children && node.children.length > 0) {
           return { ...node, children: updatePosRecursive(node.children) };
@@ -104,11 +141,11 @@ export const useMindMapNodes = () => {
       });
       return updatePosRecursive(prevNodes);
     });
-  }, [setNodes]);
+  }, [setNodes, findNodeById]);
 
   const handleTextChange = useCallback((nodeId, newText) => {
     setNodes(prevNodes => {
-      const updateTextRecursive = (currentNodes) => currentNodes.map(node => {
+      const updateTextRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
         if (node.id === nodeId) {
           return { ...node, text: newText };
         }
@@ -120,32 +157,6 @@ export const useMindMapNodes = () => {
       return updateTextRecursive(prevNodes);
     });
   }, [setNodes]);
-
-  const findNodeById = useCallback((nodeList, nodeId) => {
-    for (const node of nodeList) {
-      if (node.id === nodeId) return node;
-      if (node.children) {
-        const found = findNodeById(node.children, nodeId);
-        if (found) return found;
-      }
-    }
-    return null;
-  }, []);
-
-  const findNodeAndAbsPos = useCallback((targetNodeId, currentNodes = nodes, parentAbs = {x:0, y:0}) => {
-    for (const node of currentNodes) {
-      const absX = parentAbs.x + (node.x || 0);
-      const absY = parentAbs.y + (node.y || 0);
-      if (node.id === targetNodeId) {
-        return { node, absX, absY };
-      }
-      if (node.children && node.children.length > 0) {
-        const found = findNodeAndAbsPos(targetNodeId, node.children, {x: absX, y: absY});
-        if (found) return found;
-      }
-    }
-    return null;
-  }, [nodes]); // Depends on `nodes` for its default argument
 
   return {
     nodes,
