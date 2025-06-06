@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './index.css';
 import Node from './components/Node';
+import Arrow from './components/Arrow';
 
 // Generate a simple unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -179,6 +180,139 @@ function App() {
     });
   };
 
+  // State to store arrow data
+  const [arrowData, setArrowData] = useState([]);
+
+  // Function to find intersection point with a rectangle's edge
+  const getEdgePoint = (rect, x, y) => {
+    // Get center of the rectangle
+    const centerX = rect.left + rect.width / 2 - leftPanelWidth;
+    const centerY = rect.top + rect.height / 2;
+    
+    // Calculate direction vector from center to point
+    let dx = x - centerX;
+    let dy = y - centerY;
+    
+    // Calculate aspect ratio of the rectangle
+    const aspect = rect.width / rect.height;
+    
+    // Calculate angle and normalize direction
+    const angle = Math.atan2(dy, dx);
+    
+    // Calculate intersection with rectangle's edge
+    let edgeX, edgeY;
+    
+    // Calculate the angle in the first octant (0 to 45 degrees)
+    const octantAngle = Math.atan2(rect.height, rect.width);
+    const absAngle = Math.abs(angle);
+    
+    // Determine which edge we intersect
+    if (absAngle < octantAngle || absAngle > Math.PI - octantAngle) {
+      // Right or left edge
+      const sign = Math.sign(Math.cos(angle));
+      edgeX = centerX + sign * rect.width / 2;
+      edgeY = centerY + Math.tan(angle) * (edgeX - centerX);
+    } else {
+      // Top or bottom edge
+      const sign = Math.sign(Math.sin(angle));
+      edgeY = centerY + sign * rect.height / 2;
+      edgeX = centerX + (edgeY - centerY) / Math.tan(angle);
+      
+      // Handle vertical lines (tan(90°) is infinite)
+      if (Math.abs(Math.cos(angle)) < 0.001) {
+        edgeX = centerX;
+      }
+    }
+    
+    return { x: edgeX, y: edgeY };
+  };
+
+  // Update arrows when nodes or refs change
+  useEffect(() => {
+    const calculateArrows = () => {
+      const newArrows = [];
+      const processed = new Set();
+      
+      const processNode = (node, currentX = 0, currentY = 0) => {
+        if (!node || !node.children) return;
+        
+        const nodeX = currentX + (node.x || 0);
+        const nodeY = currentY + (node.y || 0);
+        
+        node.children.forEach(child => {
+          const childId = child.id;
+          const arrowId = `${node.id}-${childId}`;
+          
+          if (processed.has(arrowId)) return;
+          
+          const parentEl = nodeRefs.current[node.id];
+          const childEl = nodeRefs.current[childId];
+          
+          if (parentEl && childEl) {
+            const parentRect = parentEl.getBoundingClientRect();
+            const childRect = childEl.getBoundingClientRect();
+            
+            // Get center points
+            const parentCenterX = parentRect.left + parentRect.width / 2 - leftPanelWidth;
+            const parentCenterY = parentRect.top + parentRect.height / 2;
+            const childCenterX = childRect.left + childRect.width / 2 - leftPanelWidth;
+            const childCenterY = childRect.top + childRect.height / 2;
+            
+            // Calculate direction from parent to child
+            const dx = childCenterX - parentCenterX;
+            const dy = childCenterY - parentCenterY;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            
+            if (length > 0) {
+              // Calculate edge points
+              const startPoint = getEdgePoint(parentRect, childCenterX, childCenterY);
+              const endPoint = getEdgePoint(childRect, parentCenterX, parentCenterY);
+              
+              newArrows.push({
+                id: arrowId,
+                from: startPoint,
+                to: endPoint
+              });
+              
+              processed.add(arrowId);
+            }
+          }
+          
+          if (child && child.children) {
+            processNode(child, nodeX, nodeY);
+          }
+        });
+      };
+      
+      nodes.forEach(node => processNode(node));
+      setArrowData(newArrows);
+    };
+    
+    // Use requestAnimationFrame to ensure DOM is updated
+    const frameId = requestAnimationFrame(() => {
+      calculateArrows();
+    });
+    
+    return () => cancelAnimationFrame(frameId);
+  }, [nodes, leftPanelWidth]);
+  
+  // Function to render arrows (now just maps over arrowData)
+  const renderArrows = () => {
+    return arrowData;
+  };
+
+  // Helper function to find a node by ID
+  const findNodeById = (nodeList, nodeId) => {
+    for (const node of nodeList) {
+      if (node.id === nodeId) return node;
+      if (node.children) {
+        const found = findNodeById(node.children, nodeId);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
   // Recursive rendering of nodes
   const renderNodeElements = (nodeList = nodes, parentX = 0, parentY = 0) => {
     return nodeList.map(node => {
@@ -216,6 +350,9 @@ function App() {
       <div className="mind-map">
         <div className="node-layer">
           {renderNodeElements()}
+          {renderArrows().map(arrow => (
+            <Arrow key={arrow.id} from={arrow.from} to={arrow.to} />
+          ))}
         </div>
       </div>
     </div>
