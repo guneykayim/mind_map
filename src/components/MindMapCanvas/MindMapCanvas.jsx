@@ -21,18 +21,21 @@ const MindMapCanvas = ({
   };
 
   // Recursive rendering of nodes
-  const renderNodeElements = (nodeList = nodes, parentX = 0, parentY = 0) => {
+  const renderNodeElements = (nodeList = nodes, currentParentAbsX = 0, currentParentAbsY = 0) => {
     return nodeList.map(node => {
-      const nodeX = parentX + (node.x || 0);
-      const nodeY = parentY + (node.y || 0);
+      // Calculate the absolute position of the current node on the canvas
+      const nodeAbsX = currentParentAbsX + (node.x || 0);
+      const nodeAbsY = currentParentAbsY + (node.y || 0);
       return (
         <React.Fragment key={node.id}>
           <Node
             id={node.id}
             text={node.text}
-            position={{ x: nodeX, y: nodeY }}
+            position={{ x: nodeAbsX, y: nodeAbsY }} // Pass node's ABSOLUTE canvas position
+            // parentAbsX and parentAbsY props are removed from Node component
             onTextChange={newText => handleTextChange(node.id, newText)}
-            onPositionChange={(x, y) => updateNodePosition(node.id, x - parentX, y - parentY)}
+            // Node.jsx will now pass ABSOLUTE canvas position to this callback
+            onPositionChange={(absoluteX, absoluteY) => updateNodePosition(node.id, absoluteX, absoluteY)}
             onAddNode={addNode}
             leftPanelWidth={leftPanelWidth}
             setNodeRef={el => setNodeRef(node.id, el)}
@@ -40,7 +43,8 @@ const MindMapCanvas = ({
             isSelected={selectedNodeId === node.id}
             onSelect={() => onNodeSelect(node.id)}
           />
-          {node.children && node.children.length > 0 && renderNodeElements(node.children, nodeX, nodeY)}
+          {/* For children of *this* node, *their* logical parent's absolute position is nodeAbsX, nodeAbsY */}
+          {node.children && node.children.length > 0 && renderNodeElements(node.children, nodeAbsX, nodeAbsY)}
         </React.Fragment>
       );
     });

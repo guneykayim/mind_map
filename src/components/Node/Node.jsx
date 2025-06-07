@@ -69,7 +69,7 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
       setIsHovered(true);
     }
 
-    // Call onPositionChange with the final position
+    // Call onPositionChange with the final ABSOLUTE canvas position
     if (typeof onPositionChange === 'function' && typeof dragState.current.lastX === 'number') {
       onPositionChange(dragState.current.lastX, dragState.current.lastY);
     }
@@ -137,14 +137,16 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
       const availableWidth = mindMapRect.width - (paddingLeft * 2);
       const availableHeight = mindMapRect.height - (paddingTop * 2);
       
-      // Calculate center position
-      const centerX = (availableWidth / 2) - (node.offsetWidth / 2) + paddingLeft;
-      const centerY = (availableHeight / 2) - (node.offsetHeight / 2) + paddingTop;
+      // Calculate center position (these are absolute on canvas for initial placement)
+      const absoluteCenterX = (availableWidth / 2) - (node.offsetWidth / 2) + paddingLeft;
+      const absoluteCenterY = (availableHeight / 2) - (node.offsetHeight / 2) + paddingTop;
       
       if (typeof onPositionChange === 'function') {
-        onPositionChange(centerX, centerY);
+        // Pass the absolute center coordinates
+        onPositionChange(absoluteCenterX, absoluteCenterY);
       }
-      node.style.transform = `translate(${centerX}px, ${centerY}px)`;
+      // The transform style uses the position prop, which is already absolute.
+      // Calling onPositionChange will update the state, leading to a re-render with the new absolute position.
     }
   }, [leftPanelWidth]);
 
