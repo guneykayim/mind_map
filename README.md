@@ -11,10 +11,10 @@ A web-based mind mapping tool built with React and modern web technologies. This
 - Hover-triggered + buttons for adding child nodes
 - Add new nodes when + buttons are clicked
 - Clean and modern UI with smooth animations
+- Add arrow connections between nodes
+- Maintain arrow connections when nodes are dragged
 
 ### 🚧 In Progress
-- [ ] Add arrow connections between nodes
-- [ ] Maintain arrow connections when nodes are dragged
 - [ ] Save and load mind map functionality
 
 ## 🛠 Tech Stack
@@ -62,11 +62,19 @@ npm run build
 
 ```
 src/
+├── App.jsx             # Main application component
 ├── components/         # React components
-│   ├── Node/           # Node component and styles
+│   ├── Arrow/          # Arrow component and related files
+│   ├── MindMapCanvas/  # Canvas for rendering nodes and arrows
+│   ├── Node/           # Node component and related files
 │   └── NodeText/       # Node text editing component
-├── styles/             # Global styles and variables
-└── App.jsx             # Main application component
+├── hooks/              # Custom React hooks
+│   ├── useMindMapArrows.js # Hook for arrow logic
+│   └── useMindMapNodes.js  # Hook for node logic
+├── index.css           # Main CSS file for the entry point
+├── index.jsx           # Main entry point for the React application
+└── styles/             # Global styles and variables
+    └── variables.css   # CSS variables
 ```
 
 ## 🧪 Testing
