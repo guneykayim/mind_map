@@ -49,4 +49,9 @@ task list:
 6. [+] add a new node to the mind map when + icon is clicked
 7. [+] added nodes should be connected to the parent node with an arrow 
 8. [+] make sure when the node is dragged, all the arrow connections are maintained 
-9. [] add the save and load functionality
+9. [ ] Allow nodes to be deleted
+10. [ ] Allow multiple nodes to be selected and dragged together
+11. [ ] Make canvas zoomable
+12. [ ] Make canvas scrollable
+13. [ ] Child nodes cannot add a node in it's parent direction
+14. [ ] add the export and import functionality

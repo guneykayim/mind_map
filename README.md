@@ -15,7 +15,12 @@ A web-based mind mapping tool built with React and modern web technologies. This
 - Maintain arrow connections when nodes are dragged
 
 ### 🚧 In Progress
-- [ ] Save and load mind map functionality
+- [ ] Allow nodes to be deleted
+- [ ] Allow multiple nodes to be selected and dragged together
+- [ ] Make canvas zoomable
+- [ ] Make canvas scrollable
+- [ ] Child nodes cannot add a node in it's parent direction
+- [ ] Export and import mind map
 
 ## 🛠 Tech Stack
 
@@ -89,6 +94,7 @@ npm test
 - The application is currently in active development
 - UI/UX improvements are ongoing
 - Performance optimizations are planned for larger mind maps
+- This project is being developed entirely through AI-assisted coding (pair programming with AI). So far, models like GPT-4.1, Gemini 2.5 Pro, and SWE-1 have contributed to the codebase.
 
 ## 📄 License
 
