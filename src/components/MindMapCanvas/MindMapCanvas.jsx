@@ -10,7 +10,8 @@ const MindMapCanvas = ({
   updateNodePosition,
   addNode,
   setNodeRef,
-  leftPanelWidth
+  leftPanelWidth,
+  onNodeIsDragging // Added new prop
 }) => {
 
   // Recursive rendering of nodes
@@ -29,6 +30,7 @@ const MindMapCanvas = ({
             onAddNode={addNode}
             leftPanelWidth={leftPanelWidth}
             setNodeRef={el => setNodeRef(node.id, el)}
+            onNodeIsDragging={onNodeIsDragging} // Pass down the prop
           />
           {node.children && node.children.length > 0 && renderNodeElements(node.children, nodeX, nodeY)}
         </React.Fragment>

@@ -24,7 +24,8 @@ function App() {
   }, []);
   const leftPaneRef = useRef(null);
   const [leftPanelWidth, setLeftPanelWidth] = useState(0);
-  const arrowData = useMindMapArrows(nodes, nodeRefs.current, leftPanelWidth);
+  const [draggingNodeInfo, setDraggingNodeInfo] = useState(null);
+  const arrowData = useMindMapArrows(nodes, nodeRefs.current, leftPanelWidth, draggingNodeInfo);
 
   // Get the computed width from CSS
   useEffect(() => {
@@ -71,6 +72,7 @@ function App() {
         addNode={addNode}
         setNodeRef={setNodeRef}
         leftPanelWidth={leftPanelWidth}
+        onNodeIsDragging={setDraggingNodeInfo}
       />
     </div>
   );

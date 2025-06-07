@@ -73,7 +73,7 @@ const getEdgePoint = (rect, targetX, targetY, panelWidthOffset = 0, fixedSide = 
   };
 };
 
-export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth) => {
+export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth, draggingNodeInfo) => {
   const [arrowData, setArrowData] = useState([]);
 
   useEffect(() => {
@@ -101,10 +101,21 @@ export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth) => {
             const parentRect = parentEl.getBoundingClientRect();
             const childRect = childEl.getBoundingClientRect();
 
-            const parentVisualCenterX = parentRect.left + parentRect.width / 2 - leftPanelWidth;
-            const parentVisualCenterY = parentRect.top + parentRect.height / 2;
-            const childVisualCenterX = childRect.left + childRect.width / 2 - leftPanelWidth;
-            const childVisualCenterY = childRect.top + childRect.height / 2;
+            let actualParentVisualCenterX = parentRect.left + parentRect.width / 2 - leftPanelWidth;
+            let actualParentVisualCenterY = parentRect.top + parentRect.height / 2;
+            let actualChildVisualCenterX = childRect.left + childRect.width / 2 - leftPanelWidth;
+            let actualChildVisualCenterY = childRect.top + childRect.height / 2;
+
+            if (draggingNodeInfo) {
+              if (draggingNodeInfo.id === node.id) { // Parent node is being dragged
+                actualParentVisualCenterX = draggingNodeInfo.x + parentRect.width / 2;
+                actualParentVisualCenterY = draggingNodeInfo.y + parentRect.height / 2;
+              }
+              if (draggingNodeInfo.id === childId) { // Child node is being dragged
+                actualChildVisualCenterX = draggingNodeInfo.x + childRect.width / 2;
+                actualChildVisualCenterY = draggingNodeInfo.y + childRect.height / 2;
+              }
+            }
 
             // Determine fixed side for parent based on child's relative logical position
             const childRelX = child.x || 0;
@@ -128,8 +139,8 @@ export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth) => {
             else if (parentFixedSide === 'top') childFixedSide = 'bottom';
             else if (parentFixedSide === 'bottom') childFixedSide = 'top';
             
-            const startPoint = getEdgePoint(parentRect, childVisualCenterX, childVisualCenterY, leftPanelWidth, parentFixedSide);
-            const endPoint = getEdgePoint(childRect, parentVisualCenterX, parentVisualCenterY, leftPanelWidth, childFixedSide);
+            const startPoint = getEdgePoint(parentRect, actualChildVisualCenterX, actualChildVisualCenterY, leftPanelWidth, parentFixedSide);
+            const endPoint = getEdgePoint(childRect, actualParentVisualCenterX, actualParentVisualCenterY, leftPanelWidth, childFixedSide);
             
             const arrowDx = endPoint.x - startPoint.x;
             const arrowDy = endPoint.y - startPoint.y;
@@ -161,7 +172,7 @@ export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth) => {
     });
     
     return () => cancelAnimationFrame(frameId);
-  }, [nodes, nodeRefs, leftPanelWidth]); // Rerun when nodes, their refs, or panel width change
+  }, [nodes, nodeRefs, leftPanelWidth, draggingNodeInfo]); // Rerun when nodes, their refs, or panel width change
 
   return arrowData;
 };

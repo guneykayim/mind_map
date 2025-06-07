@@ -5,7 +5,7 @@ import styles from './Node.module.css';
 // Move these outside the component to prevent recreation
 const noop = () => {};
 
-function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, leftPanelWidth, setNodeRef }) {
+function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, leftPanelWidth, setNodeRef, onNodeIsDragging = noop }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredDirection, setHoveredDirection] = useState(null);
@@ -46,10 +46,13 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     requestAnimationFrame(() => {
       node.style.transform = `translate(${newX}px, ${newY}px)`;
     });
-  }, [leftPanelWidth]);
+    onNodeIsDragging({ id, x: newX, y: newY });
+
+  }, [leftPanelWidth, id, onNodeIsDragging]);
 
   // Memoize the end drag handler
   const handleMouseUp = useCallback(() => {
+    onNodeIsDragging(null); // Clear dragging state first
     dragState.current.isDragging = false;
     document.body.style.cursor = 'default';
     
@@ -63,7 +66,7 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     if (typeof onPositionChange === 'function' && typeof dragState.current.lastX === 'number') {
       onPositionChange(dragState.current.lastX, dragState.current.lastY);
     }
-  }, [isEditing]);
+  }, [isEditing, onNodeIsDragging]);
 
   const handleMouseDown = useCallback((e) => {
     if (isEditing) return;
