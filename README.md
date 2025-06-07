@@ -13,9 +13,9 @@ A web-based mind mapping tool built with React and modern web technologies. This
 - Clean and modern UI with smooth animations
 - Add arrow connections between nodes
 - Maintain arrow connections when nodes are dragged
+- Allow nodes to be deleted
 
 ### 🚧 In Progress
-- [ ] Allow nodes to be deleted
 - [ ] Allow multiple nodes to be selected and dragged together
 - [ ] Make canvas zoomable
 - [ ] Make canvas scrollable

@@ -11,8 +11,14 @@ const MindMapCanvas = ({
   addNode,
   setNodeRef,
   leftPanelWidth,
-  onNodeIsDragging // Added new prop
+  onNodeIsDragging,
+  selectedNodeId, // Added for selection
+  onNodeSelect    // Added for selection
 }) => {
+
+  const handleCanvasClick = () => {
+    onNodeSelect(null); // Deselect any selected node
+  };
 
   // Recursive rendering of nodes
   const renderNodeElements = (nodeList = nodes, parentX = 0, parentY = 0) => {
@@ -30,7 +36,9 @@ const MindMapCanvas = ({
             onAddNode={addNode}
             leftPanelWidth={leftPanelWidth}
             setNodeRef={el => setNodeRef(node.id, el)}
-            onNodeIsDragging={onNodeIsDragging} // Pass down the prop
+            onNodeIsDragging={onNodeIsDragging}
+            isSelected={selectedNodeId === node.id}
+            onSelect={() => onNodeSelect(node.id)}
           />
           {node.children && node.children.length > 0 && renderNodeElements(node.children, nodeX, nodeY)}
         </React.Fragment>
@@ -39,7 +47,7 @@ const MindMapCanvas = ({
   };
 
   return (
-    <div className="mind-map"> {/* This class might be global or from App.css/index.css */}
+    <div className="mind-map" onClick={handleCanvasClick}> {/* This class might be global or from App.css/index.css */}
       <div className="node-layer"> {/* This class might be global or from App.css/index.css */}
         {renderNodeElements()}
         {arrowData.map(arrow => (

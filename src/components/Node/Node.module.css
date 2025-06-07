@@ -29,6 +29,18 @@
   box-shadow: var(--shadow-md);
 }
 
+.selected {
+  border-color: var(--color-accent, #007bff); /* Fallback accent color */
+  box-shadow: var(--shadow-lg, 0 0 15px rgba(0, 123, 255, 0.5)); /* Fallback shadow */
+  /* Ensure selected style overrides hover if needed, or combines well */
+}
+
+.selected:hover {
+  /* Optional: define specific hover for selected state if different from normal hover */
+  border-color: var(--color-accent-hover, #0056b3); /* Darker accent for hover */
+  box-shadow: var(--shadow-xl, 0 0 20px rgba(0, 123, 255, 0.7));
+}
+
 .isEditing {
   cursor: text;
   /* Add any other specific styles for the editing state of the node itself, not just the text input */

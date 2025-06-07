@@ -158,12 +158,35 @@ export const useMindMapNodes = () => {
     });
   }, [setNodes]);
 
+  const deleteNode = useCallback((nodeIdToDelete) => {
+    setNodes(prevNodes => {
+      const recursivelyDelete = (currentNodes, targetId) => {
+        if (!currentNodes || currentNodes.length === 0) {
+          return [];
+        }
+        const newNodesList = [];
+        for (const node of currentNodes) {
+          if (node.id === targetId) {
+            // Node found, do not include it or its children
+            continue;
+          }
+          // Node is not the target, keep it and process its children
+          const updatedChildren = node.children ? recursivelyDelete(node.children, targetId) : [];
+          newNodesList.push({ ...node, children: updatedChildren });
+        }
+        return newNodesList;
+      };
+      return recursivelyDelete(prevNodes, nodeIdToDelete);
+    });
+  }, [setNodes]);
+
   return {
     nodes,
     addNode,
     updateNodePosition,
     handleTextChange,
     findNodeById,
-    findNodeAndAbsPos
+    findNodeAndAbsPos,
+    deleteNode
   };
 };

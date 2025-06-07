@@ -5,7 +5,7 @@ import styles from './Node.module.css';
 // Move these outside the component to prevent recreation
 const noop = () => {};
 
-function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, leftPanelWidth, setNodeRef, onNodeIsDragging = noop }) {
+function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, leftPanelWidth, setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredDirection, setHoveredDirection] = useState(null);
@@ -18,6 +18,13 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     lastX: 0, // Store last calculated X
     lastY: 0  // Store last calculated Y
   });
+
+  const handleClick = useCallback((event) => {
+    event.stopPropagation(); // Stop propagation
+    if (!dragState.current.isDragging && !isEditing) {
+      onSelect();
+    }
+  }, [isEditing, onSelect]);
 
   const handleDoubleClick = useCallback(() => {
     setIsEditing(true);
@@ -181,21 +188,13 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
         nodeRef.current = el;
         if (setNodeRef) setNodeRef(el);
       }}
-      className={
-        styles.node +
-        (isEditing ? ' ' + styles.editing : '') +
-        (isHovered ? ' ' + styles.hovered : '')
-      }
-      style={{
-        willChange: 'transform',
-        left: 0,
-        top: 0,
-        position: 'absolute',
-        transform: `translate(${position.x || 0}px, ${position.y || 0}px)`
-      }}
+      className={`${styles.node} ${isEditing ? styles.isEditing : ''} ${isSelected ? styles.selected : ''}`}
+      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      onClick={handleClick}
       onMouseDown={handleMouseDown}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onDoubleClick={handleDoubleClick}
+      onMouseEnter={() => !isEditing && !dragState.current.isDragging && setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <NodeText 
         text={text} 
@@ -214,26 +213,26 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
             }
             onMouseEnter={() => setHoveredDirection('top')}
             onMouseLeave={() => setHoveredDirection(null)}
-            onClick={() => handleAddNodeClick('top')}
+            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('top'); }}
             title="Add node above"
           >+</button>
           <button 
             className={`${styles.addNodeButton} ${styles.right} ${hoveredDirection === 'right' ? styles.hovered : ''}`}
-            onClick={() => handleAddNodeClick('right')}
+            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('right'); }}
             title="Add node to the right"
             onMouseEnter={() => setHoveredDirection('right')}
             onMouseLeave={() => setHoveredDirection(null)}
           >+</button>
           <button 
             className={`${styles.addNodeButton} ${styles.bottom} ${hoveredDirection === 'bottom' ? styles.hovered : ''}`}
-            onClick={() => handleAddNodeClick('bottom')}
+            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('bottom'); }}
             title="Add node below"
             onMouseEnter={() => setHoveredDirection('bottom')}
             onMouseLeave={() => setHoveredDirection(null)}
           >+</button>
           <button 
             className={`${styles.addNodeButton} ${styles.left} ${hoveredDirection === 'left' ? styles.hovered : ''}`}
-            onClick={() => handleAddNodeClick('left')}
+            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('left'); }}
             title="Add node to the left"
             onMouseEnter={() => setHoveredDirection('left')}
             onMouseLeave={() => setHoveredDirection(null)}
