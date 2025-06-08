@@ -50,8 +50,18 @@ task list:
 7. [+] added nodes should be connected to the parent node with an arrow 
 8. [+] make sure when the node is dragged, all the arrow connections are maintained 
 9. [+] Allow nodes to be deleted (by delete key, and it should also pop up are you sure dialog)
-10. [ ] Allow multiple nodes to be selected and dragged together
-11. [ ] Make canvas zoomable
+10. [ ] Make canvas zoomable: 
+    default zoom should be 100% but user should be able to zoom in and out
+    max zoom should be 200%
+    min zoom should be 10%
+    place a sticky zoom control in the right bottom corner of the canvas
+    zoom control should have + and - buttons
+    zoom control should have a slider as well
+    zoom control should have a reset button (100%)
+11. [ ] Make zooming in the center of the screen, not top left
 12. [ ] Make canvas scrollable
-13. [ ] Child nodes cannot add a node in it's parent direction
-14. [ ] add the export and import functionality
+13. [ ] Allow multiple nodes to be selected and dragged together
+14. [ ] Allow multiple nodes to be selected and deleted together
+15. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
+16. [ ] Child nodes shouldn't be able to add a node in it's parent direction
+17. [ ] add the export and import functionality

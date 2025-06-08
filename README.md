@@ -14,10 +14,10 @@ A web-based mind mapping tool built with React and modern web technologies. This
 - Add arrow connections between nodes
 - Maintain arrow connections when nodes are dragged
 - Allow nodes to be deleted
+- Make canvas zoomable
 
 ### 🚧 In Progress
 - [ ] Allow multiple nodes to be selected and dragged together
-- [ ] Make canvas zoomable
 - [ ] Make canvas scrollable
 - [ ] Child nodes cannot add a node in it's parent direction
 - [ ] Export and import mind map

@@ -5,7 +5,7 @@ import styles from './Node.module.css';
 // Move these outside the component to prevent recreation
 const noop = () => {};
 
-function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, leftPanelWidth, setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop }) {
+function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, /*leftPanelWidth,*/ setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop, zoomLevel = 1, canvasContentRef }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredDirection, setHoveredDirection] = useState(null);
@@ -38,24 +38,41 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     // Ensure hover state is false during drag
     setIsHovered(false);
     
+    if (!dragState.current.isDragging || !canvasContentRef.current) return;
+
     const { offsetX, offsetY } = dragState.current;
     const node = nodeRef.current;
     if (!node) return;
-    
-    const newX = e.clientX - offsetX - leftPanelWidth;
-    const newY = e.clientY - offsetY;
-    
-    // Store last position for mouseup
-    dragState.current.lastX = newX;
-    dragState.current.lastY = newY;
 
-    // No local position ref, just update transform
+    const containerRect = canvasContentRef.current.getBoundingClientRect();
+
+    // Calculate node's new top-left in viewport coordinates
+    const viewportNodeX = e.clientX - offsetX;
+    const viewportNodeY = e.clientY - offsetY;
+
+    // Calculate node's new top-left relative to the scaled container (these are scaled screen pixels)
+    const relativeX_scaled = viewportNodeX - containerRect.left;
+    const relativeY_scaled = viewportNodeY - containerRect.top;
+
+    // Calculate unscaled ABSOLUTE logical coordinates relative to the container
+    const absoluteLogicalX = relativeX_scaled / zoomLevel;
+    const absoluteLogicalY = relativeY_scaled / zoomLevel;
+
+    // Update visual position directly using ABSOLUTE logical (unscaled) left/top coordinates,
+    // because the Node's div is positioned absolutely within the 'mind-map-content-container'.
     requestAnimationFrame(() => {
-      node.style.transform = `translate(${newX}px, ${newY}px)`;
+      node.style.left = `${absoluteLogicalX}px`;
+      node.style.top = `${absoluteLogicalY}px`;
+      node.style.transform = ''; // Clear transform to avoid interference
     });
-    onNodeIsDragging({ id, x: newX, y: newY });
 
-  }, [leftPanelWidth, id, onNodeIsDragging]);
+    // For state updates (onNodeIsDragging, onPositionChange), use ABSOLUTE logical coordinates.
+    dragState.current.lastX = absoluteLogicalX;
+    dragState.current.lastY = absoluteLogicalY;
+
+    onNodeIsDragging({ id, x: absoluteLogicalX, y: absoluteLogicalY });
+
+  }, [id, onNodeIsDragging, zoomLevel, canvasContentRef]);
 
   // Memoize the end drag handler
   const handleMouseUp = useCallback(() => {
@@ -65,8 +82,15 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     
     // Restore hover state if mouse is still over the node
     const node = nodeRef.current;
-    if (node && node.matches(':hover') && !isEditing) {
-      setIsHovered(true);
+    if (node) {
+      // Reset direct style manipulations to allow React to control positioning via props
+      node.style.left = ''; 
+      node.style.top = '';
+      // node.style.transform = ''; // Already cleared during move, but good to be explicit if needed
+
+      if (node.matches(':hover') && !isEditing) {
+        setIsHovered(true);
+      }
     }
 
     // Call onPositionChange with the final ABSOLUTE canvas position
@@ -97,15 +121,21 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     document.body.style.cursor = 'grabbing';
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp, { once: true });
-  }, [isEditing, handleMouseMove, handleMouseUp, leftPanelWidth]);
+  }, [isEditing, handleMouseMove, handleMouseUp]);
 
   // Clean up event listeners
+  // Clean up event listeners: Attach and detach on mount/unmount or when handlers change
   useEffect(() => {
+    const currentMouseMove = handleMouseMove;
+    const currentMouseUp = handleMouseUp;
+    // Add listeners in handleMouseDown, remove them in handleMouseUp and on unmount
+    // This effect is primarily for cleanup on unmount if listeners were somehow left active.
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', currentMouseMove);
+      document.removeEventListener('mouseup', currentMouseUp);
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleMouseUp]); // Keep dependencies for ESLint, though listeners are managed in mousedown/mouseup
+
 
   // Handle cursor changes based on edit state
   useEffect(() => {
@@ -122,33 +152,28 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
   useEffect(() => {
     if (setNodeRef) setNodeRef(nodeRef.current);
     const node = nodeRef.current;
-    if (node && (!position || (position.x === 0 && position.y === 0))) {
-      // Center the node in the mind map container
-      const mindMap = node.closest('.mind-map');
-      if (!mindMap) return;
+    // Initial centering logic might need review if `position` is now always relative to mind-map-content-container
+    // For now, keeping it as is, but this part might be simplified or adjusted
+    // if initial position (0,0) should mean top-left of the content container.
+    if (node && canvasContentRef && canvasContentRef.current && (!position || (position.x === 0 && position.y === 0 && id === 'root'))) { // Only center root initially
+      const contentContainer = canvasContentRef.current;
+      const containerRect = contentContainer.getBoundingClientRect(); // This is the scaled rect
       
-      // Get the mind map's dimensions and padding
-      const mindMapRect = mindMap.getBoundingClientRect();
-      const mindMapStyle = window.getComputedStyle(mindMap);
-      const paddingLeft = parseFloat(mindMapStyle.paddingLeft) || 0;
-      const paddingTop = parseFloat(mindMapStyle.paddingTop) || 0;
+      // We want to center it within the viewport of the content container, in unscaled coordinates
+      const unscaledContainerWidth = containerRect.width / zoomLevel;
+      const unscaledContainerHeight = containerRect.height / zoomLevel;
       
-      // Calculate available space for centering
-      const availableWidth = mindMapRect.width - (paddingLeft * 2);
-      const availableHeight = mindMapRect.height - (paddingTop * 2);
-      
-      // Calculate center position (these are absolute on canvas for initial placement)
-      const absoluteCenterX = (availableWidth / 2) - (node.offsetWidth / 2) + paddingLeft;
-      const absoluteCenterY = (availableHeight / 2) - (node.offsetHeight / 2) + paddingTop;
+      const nodeWidth = node.offsetWidth; // This is unscaled
+      const nodeHeight = node.offsetHeight; // This is unscaled
+
+      const logicalCenterX = (unscaledContainerWidth / 2) - (nodeWidth / 2);
+      const logicalCenterY = (unscaledContainerHeight / 2) - (nodeHeight / 2);
       
       if (typeof onPositionChange === 'function') {
-        // Pass the absolute center coordinates
-        onPositionChange(absoluteCenterX, absoluteCenterY);
+        onPositionChange(logicalCenterX, logicalCenterY);
       }
-      // The transform style uses the position prop, which is already absolute.
-      // Calling onPositionChange will update the state, leading to a re-render with the new absolute position.
     }
-  }, [leftPanelWidth]);
+  }, [id, onPositionChange, setNodeRef, zoomLevel, canvasContentRef]); // Removed leftPanelWidth, added zoomLevel, canvasContentRef
 
   const handleAddNodeClick = (direction) => {
     if (onAddNode && id && nodeRef.current) {
@@ -161,8 +186,8 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
         latestY = rect.top - mindMapRect.top;
       }
       onAddNode(id, direction, {
-        parentWidth: rect.width,
-        parentHeight: rect.height,
+        parentWidth: rect.width / zoomLevel,
+        parentHeight: rect.height / zoomLevel,
         latestX,
         latestY
       });

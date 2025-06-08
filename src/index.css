@@ -51,10 +51,11 @@ body, html {
 /* Mind Map Area */
 .mind-map {
   flex: 1;
-  position: relative;
+  position: relative; /* Important for positioning children like zoom controls if they were inside */
   background-color: #ffffff;
   padding: var(--spacing-md);
-  overflow: auto;
+  overflow: auto; /* This will be for the content inside, not the zoom controls */
 }
 
+/* Zoom Controls Styling - MOVED TO src/components/ZoomControls/ZoomControls.css */
 

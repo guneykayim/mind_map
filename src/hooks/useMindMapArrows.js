@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 
 // Function to find intersection point with a rectangle's edge
-const getEdgePoint = (rect, targetX, targetY, panelWidthOffset = 0, fixedSide = null) => {
+// Function to find intersection point with a rectangle's edge (returns viewport coordinates)
+const getEdgePoint = (rect, targetX, targetY, fixedSide = null) => {
   // Calculate rectangle's visual center and boundaries in canvas coordinates
-  const visualRectLeft = rect.left - panelWidthOffset;
-  const visualRectRight = rect.right - panelWidthOffset;
+  const visualRectLeft = rect.left;
+  const visualRectRight = rect.right;
   const visualRectTop = rect.top;
   const visualRectBottom = rect.bottom;
 
@@ -73,7 +74,7 @@ const getEdgePoint = (rect, targetX, targetY, panelWidthOffset = 0, fixedSide = 
   };
 };
 
-export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth, draggingNodeInfo) => {
+export const useMindMapArrows = (nodes, nodeRefs, draggingNodeInfo, zoomLevel = 1, canvasContentRef) => {
   const [arrowData, setArrowData] = useState([]);
 
   useEffect(() => {
@@ -82,44 +83,59 @@ export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth, draggingNodeIn
       const newArrows = [];
       const processed = new Set(); // To avoid duplicate arrows if structure is complex
 
-      const processNode = (node, currentX = 0, currentY = 0) => {
-        if (!node || !node.children) return;
+      const processNodeRecursive = (parentNode) => { // parentNode.x and parentNode.y are absolute
+        if (!parentNode || !parentNode.children || parentNode.children.length === 0) return;
 
-        const nodeAbsX = currentX + (node.x || 0); // Absolute X of current node's logical center
-        const nodeAbsY = currentY + (node.y || 0); // Absolute Y of current node's logical center
+        const parentAbsoluteX = parentNode.x || 0;
+        const parentAbsoluteY = parentNode.y || 0;
 
-        node.children.forEach(child => {
-          const childId = child.id;
-          const arrowId = `${node.id}-${childId}`;
+        parentNode.children.forEach(childNode => {
+          const childAbsoluteX = childNode.x || 0;
+          const childAbsoluteY = childNode.y || 0;
+          const arrowId = `${parentNode.id}-${childNode.id}`;
 
           if (processed.has(arrowId)) return;
 
-          const parentEl = nodeRefs[node.id];
-          const childEl = nodeRefs[childId];
+          const parentEl = nodeRefs[parentNode.id];
+          const childEl = nodeRefs[childNode.id];
 
           if (parentEl && childEl) {
             const parentRect = parentEl.getBoundingClientRect();
             const childRect = childEl.getBoundingClientRect();
 
-            let actualParentVisualCenterX = parentRect.left + parentRect.width / 2 - leftPanelWidth;
+            let actualParentVisualCenterX = parentRect.left + parentRect.width / 2;
             let actualParentVisualCenterY = parentRect.top + parentRect.height / 2;
-            let actualChildVisualCenterX = childRect.left + childRect.width / 2 - leftPanelWidth;
+            let actualChildVisualCenterX = childRect.left + childRect.width / 2;
             let actualChildVisualCenterY = childRect.top + childRect.height / 2;
 
-            if (draggingNodeInfo) {
-              if (draggingNodeInfo.id === node.id) { // Parent node is being dragged
-                actualParentVisualCenterX = draggingNodeInfo.x + parentRect.width / 2;
-                actualParentVisualCenterY = draggingNodeInfo.y + parentRect.height / 2;
+            if (draggingNodeInfo && canvasContentRef.current) {
+              const containerRect = canvasContentRef.current.getBoundingClientRect();
+              const containerOriginViewportX = containerRect.left;
+              const containerOriginViewportY = containerRect.top;
+
+              if (draggingNodeInfo.id === parentNode.id) { // Parent node is being dragged
+                const unscaledWidth = parentRect.width / zoomLevel;
+                const unscaledHeight = parentRect.height / zoomLevel;
+                // draggingNodeInfo.x and .y are already absolute logical coordinates
+                const localUnscaledCenterX = draggingNodeInfo.x + unscaledWidth / 2;
+                const localUnscaledCenterY = draggingNodeInfo.y + unscaledHeight / 2;
+                actualParentVisualCenterX = (localUnscaledCenterX * zoomLevel) + containerOriginViewportX;
+                actualParentVisualCenterY = (localUnscaledCenterY * zoomLevel) + containerOriginViewportY;
               }
-              if (draggingNodeInfo.id === childId) { // Child node is being dragged
-                actualChildVisualCenterX = draggingNodeInfo.x + childRect.width / 2;
-                actualChildVisualCenterY = draggingNodeInfo.y + childRect.height / 2;
+              if (draggingNodeInfo.id === childNode.id) { // Child node is being dragged
+                const unscaledWidth = childRect.width / zoomLevel;
+                const unscaledHeight = childRect.height / zoomLevel;
+                // draggingNodeInfo.x and .y are already absolute logical coordinates
+                const localUnscaledCenterX = draggingNodeInfo.x + unscaledWidth / 2;
+                const localUnscaledCenterY = draggingNodeInfo.y + unscaledHeight / 2;
+                actualChildVisualCenterX = (localUnscaledCenterX * zoomLevel) + containerOriginViewportX;
+                actualChildVisualCenterY = (localUnscaledCenterY * zoomLevel) + containerOriginViewportY;
               }
             }
 
-            // Determine fixed side for parent based on child's relative logical position
-            const childRelX = child.x || 0;
-            const childRelY = child.y || 0;
+            // Determine fixed side for parent based on child's position RELATIVE to parent
+            const childRelX = childAbsoluteX - parentAbsoluteX;
+            const childRelY = childAbsoluteY - parentAbsoluteY;
             let parentFixedSide = null;
 
             if (Math.abs(childRelX) > Math.abs(childRelY)) {
@@ -129,7 +145,8 @@ export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth, draggingNodeIn
             } else { // Equal magnitude or one/both are zero
               if (childRelX !== 0) parentFixedSide = childRelX > 0 ? 'right' : 'left';
               else if (childRelY !== 0) parentFixedSide = childRelY > 0 ? 'bottom' : 'top';
-              else parentFixedSide = 'right'; // Default if child is at (0,0) relative to parent
+              // Default if child is at same absolute spot or relative offset is (0,0)
+              else parentFixedSide = 'right'; 
             }
 
             // Determine fixed side for child (facing the parent)
@@ -139,31 +156,51 @@ export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth, draggingNodeIn
             else if (parentFixedSide === 'top') childFixedSide = 'bottom';
             else if (parentFixedSide === 'bottom') childFixedSide = 'top';
             
-            const startPoint = getEdgePoint(parentRect, actualChildVisualCenterX, actualChildVisualCenterY, leftPanelWidth, parentFixedSide);
-            const endPoint = getEdgePoint(childRect, actualParentVisualCenterX, actualParentVisualCenterY, leftPanelWidth, childFixedSide);
+            const vpStartPoint = getEdgePoint(parentRect, actualChildVisualCenterX, actualChildVisualCenterY, parentFixedSide);
+            const vpEndPoint = getEdgePoint(childRect, actualParentVisualCenterX, actualParentVisualCenterY, childFixedSide);
+
+            let containerOriginViewportX = 0;
+            let containerOriginViewportY = 0;
+            if (canvasContentRef.current) {
+              const containerRect = canvasContentRef.current.getBoundingClientRect();
+              containerOriginViewportX = containerRect.left;
+              containerOriginViewportY = containerRect.top;
+            } else {
+              console.warn('canvasContentRef.current is not available in useMindMapArrows');
+            }
+
+            const localStartPoint = {
+              x: (vpStartPoint.x - containerOriginViewportX) / zoomLevel,
+              y: (vpStartPoint.y - containerOriginViewportY) / zoomLevel,
+            };
+            const localEndPoint = {
+              x: (vpEndPoint.x - containerOriginViewportX) / zoomLevel,
+              y: (vpEndPoint.y - containerOriginViewportY) / zoomLevel,
+            };
             
-            const arrowDx = endPoint.x - startPoint.x;
-            const arrowDy = endPoint.y - startPoint.y;
+            const arrowDx = localEndPoint.x - localStartPoint.x;
+            const arrowDy = localEndPoint.y - localStartPoint.y;
             const length = Math.sqrt(arrowDx * arrowDx + arrowDy * arrowDy);
 
-            if (length > 0) {
+            if (length > 0) { // Ensure there's a visible arrow to draw
               newArrows.push({
                 id: arrowId,
-                from: startPoint,
-                to: endPoint
+                from: localStartPoint,
+                to: localEndPoint
               });
               processed.add(arrowId);
             }
           }
 
-          if (child.children && child.children.length > 0) {
-            processNode(child, nodeAbsX, nodeAbsY);
+          // Recursively process children of the current childNode
+          if (childNode.children && childNode.children.length > 0) {
+            processNodeRecursive(childNode);
           }
         });
       };
       
       // Start processing from root nodes
-      nodes.forEach(node => processNode(node, 0, 0)); // Assuming root nodes have parentX=0, parentY=0
+      nodes.forEach(rootNode => processNodeRecursive(rootNode));
       setArrowData(newArrows);
     };
     
@@ -172,7 +209,7 @@ export const useMindMapArrows = (nodes, nodeRefs, leftPanelWidth, draggingNodeIn
     });
     
     return () => cancelAnimationFrame(frameId);
-  }, [nodes, nodeRefs, leftPanelWidth, draggingNodeInfo]); // Rerun when nodes, their refs, or panel width change
+  }, [nodes, nodeRefs, draggingNodeInfo, zoomLevel, canvasContentRef]);
 
   return arrowData;
 };

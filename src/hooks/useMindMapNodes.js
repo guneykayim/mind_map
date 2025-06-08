@@ -91,7 +91,7 @@ export const useMindMapNodes = () => {
     return null;
   }, [nodes]);
 
-  const addNode = useCallback((parentId, direction, dims = {}) => {
+  const addNode = useCallback((parentId, direction, dims = {}) => { // dims contains parentWidth, parentHeight from the actual DOM element
     const newId = generateId();
     const defaultNewNodeWidth = 120;
     const defaultNewNodeHeight = 60;
@@ -100,52 +100,66 @@ export const useMindMapNodes = () => {
     setNodes(prevNodes => {
       const updateNodeTree = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
         if (node.id === parentId) {
-          const parentNode = node;
-          const siblings = parentNode.children || [];
-          let newX = 0;
-          let newY = 0;
+          const parentNode = node; // parentNode.x and parentNode.y are ABSOLUTE
+          const parentAbsoluteX = parentNode.x || 0;
+          const parentAbsoluteY = parentNode.y || 0;
+          const siblings = parentNode.children || []; // Siblings also have absolute x, y
 
-          const pWidth = dims.parentWidth || defaultNewNodeWidth;
-          const pHeight = dims.parentHeight || defaultNewNodeHeight;
+          const pWidth = dims.parentWidth || defaultNewNodeWidth; // Actual width of parent DOM element
+          const pHeight = dims.parentHeight || defaultNewNodeHeight; // Actual height of parent DOM element
+
+          let finalNewNodeX = 0;
+          let finalNewNodeY = 0;
+          let primaryOffset, secondaryOffset;
 
           if (direction === 'right' || direction === 'left') {
-            newX = (direction === 'right') ? (pWidth + 80) : -(defaultNewNodeWidth + 80);
-            // Filter siblings to only those on the same side (right: x >= 0, left: x < 0)
+            primaryOffset = (direction === 'right') ? (pWidth + 80) : -(defaultNewNodeWidth + 80); // This is x-offset
+            
             const relevantSiblings = siblings.filter(sib => {
-              return direction === 'right' ? (sib.x || 0) >= 0 : (sib.x || 0) < 0;
+              const sibX = sib.x || 0;
+              // Simplified: right means sib.x is generally to the right of parent's x, left means generally to the left.
+              return direction === 'right' ? sibX >= parentAbsoluteX : sibX < parentAbsoluteX;
             });
 
-            newY = findOptimalSlotPosition(
+            secondaryOffset = findOptimalSlotPosition(
               relevantSiblings,
-              defaultNewNodeHeight,
-              (sib) => sib.y || 0,
-              (sib) => sib.height || defaultNewNodeHeight,
+              defaultNewNodeHeight, // New node's height
+              (sib) => (sib.y || 0) - parentAbsoluteY, // Sibling's Y relative to parent's Y
+              (sib) => sib.height || defaultNewNodeHeight, // Sibling's height
               NODE_GAP
-            );
+            ); // This is y-offset relative to parent's y
+
+            finalNewNodeX = parentAbsoluteX + primaryOffset;
+            finalNewNodeY = parentAbsoluteY + secondaryOffset;
+
           } else if (direction === 'top' || direction === 'bottom') {
-            newY = (direction === 'bottom') ? (pHeight + 80) : -(defaultNewNodeHeight + 80);
-            // Filter siblings to only those on the same side (bottom: y >= 0, top: y < 0)
+            primaryOffset = (direction === 'bottom') ? (pHeight + 80) : -(defaultNewNodeHeight + 80); // This is y-offset
+
             const relevantSiblings = siblings.filter(sib => {
-              return direction === 'bottom' ? (sib.y || 0) >= 0 : (sib.y || 0) < 0;
+              const sibY = sib.y || 0;
+              return direction === 'bottom' ? sibY >= parentAbsoluteY : sibY < parentAbsoluteY;
             });
 
-            newX = findOptimalSlotPosition(
+            secondaryOffset = findOptimalSlotPosition(
               relevantSiblings,
-              defaultNewNodeWidth,
-              (sib) => sib.x || 0,
-              (sib) => sib.width || defaultNewNodeWidth,
+              defaultNewNodeWidth, // New node's width
+              (sib) => (sib.x || 0) - parentAbsoluteX, // Sibling's X relative to parent's X
+              (sib) => sib.width || defaultNewNodeWidth, // Sibling's width
               NODE_GAP
-            );
-          } else { // Default fallback for unknown direction
-            newX = pWidth + 80;
-            newY = 0;
+            ); // This is x-offset relative to parent's x
+
+            finalNewNodeX = parentAbsoluteX + secondaryOffset;
+            finalNewNodeY = parentAbsoluteY + primaryOffset;
+          } else { // Default fallback: place it relative to parent's top-right
+            finalNewNodeX = parentAbsoluteX + pWidth + 80;
+            finalNewNodeY = parentAbsoluteY;
           }
 
           const newNode = {
             id: newId,
             text: 'New Node',
-            x: newX,
-            y: newY,
+            x: finalNewNodeX, // Store absolute X
+            y: finalNewNodeY, // Store absolute Y
             children: []
           };
           return {
@@ -182,44 +196,10 @@ export const useMindMapNodes = () => {
 
   const updateNodePosition = useCallback((nodeId, newAbsoluteX, newAbsoluteY) => {
     setNodes(prevNodes => {
-      const parentAbsPos = findParentAbsolutePosition(prevNodes, nodeId);
-      let parentAbsoluteX = 0;
-      let parentAbsoluteY = 0;
-
-      if (parentAbsPos) {
-        parentAbsoluteX = parentAbsPos.x;
-        parentAbsoluteY = parentAbsPos.y;
-      } // If null, it's a root node, parent abs pos is (0,0) relative to canvas origin
-
-      const newRelativeX = newAbsoluteX - parentAbsoluteX;
-      const newRelativeY = newAbsoluteY - parentAbsoluteY;
-
-      const draggedNodePreviousState = findNodeById(prevNodes, nodeId);
-
-      if (!draggedNodePreviousState) {
-        console.warn(`Node with id ${nodeId} not found for position update.`);
-        const fallbackRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(n => {
-          if (n.id === nodeId) return { ...n, x: newRelativeX, y: newRelativeY }; // Attempt simple update
-          if (n.children) return { ...n, children: fallbackRecursive(n.children) };
-          return n;
-        });
-        return fallbackRecursive(prevNodes);
-      }
-
-      const oldRelativeX = draggedNodePreviousState.x || 0;
-      const oldRelativeY = draggedNodePreviousState.y || 0;
-
-      const deltaRelativeX = newRelativeX - oldRelativeX;
-      const deltaRelativeY = newRelativeY - oldRelativeY;
-
+      // newAbsoluteX and newAbsoluteY are the new absolute coordinates for the node.
       const updatePosRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
         if (node.id === nodeId) {
-          const updatedChildren = (node.children || []).map(child => ({
-            ...child,
-            x: (child.x || 0) - deltaRelativeX,
-            y: (child.y || 0) - deltaRelativeY,
-          }));
-          return { ...node, x: newRelativeX, y: newRelativeY, children: updatedChildren };
+          return { ...node, x: newAbsoluteX, y: newAbsoluteY };
         }
         if (node.children && node.children.length > 0) {
           return { ...node, children: updatePosRecursive(node.children) };
@@ -228,7 +208,7 @@ export const useMindMapNodes = () => {
       });
       return updatePosRecursive(prevNodes);
     });
-  }, [setNodes, findNodeById, findParentAbsolutePosition]);
+  }, [setNodes]);
 
   const handleTextChange = useCallback((nodeId, newText) => {
     setNodes(prevNodes => {
