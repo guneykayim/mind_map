@@ -14,6 +14,53 @@ const initialNodes = [
   }
 ];
 
+// Helper function to find the optimal slot for a new node among siblings
+const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, getSiblingPos, getSiblingDimension, NODE_GAP) => {
+  if (relevantSiblings.length === 0) {
+    return 0; // No siblings on this side, place at the center of the axis
+  }
+
+  let potentialSlots = [0]; // Start with parent's center on this axis
+  relevantSiblings.forEach(sib => {
+    const sibPos = getSiblingPos(sib);
+    const sibDim = getSiblingDimension(sib);
+    potentialSlots.push(sibPos + sibDim + NODE_GAP); // Slot after sibling
+    potentialSlots.push(sibPos - newNodeSecondaryDimension - NODE_GAP); // Slot before sibling
+  });
+  potentialSlots = [...new Set(potentialSlots)]; // Unique slots
+
+  const validSlots = potentialSlots.filter(slotStart => {
+    const newNodeStart = slotStart;
+    const newNodeEnd = slotStart + newNodeSecondaryDimension;
+    let isCollision = false;
+    for (const sib of relevantSiblings) {
+      const sibStart = getSiblingPos(sib);
+      const sibEnd = sibStart + getSiblingDimension(sib);
+      // Check for overlap on the secondary axis
+      if (newNodeStart < sibEnd && newNodeEnd > sibStart) {
+        isCollision = true;
+        break;
+      }
+    }
+    return !isCollision;
+  });
+
+  if (validSlots.length > 0) {
+    validSlots.sort((a, b) => {
+      const absA = Math.abs(a);
+      const absB = Math.abs(b);
+      if (absA !== absB) return absA - absB; // Closest to 0
+      return a >= 0 ? -1 : 1; // Prefer non-negative if abs values are equal
+    });
+    return validSlots[0];
+  } else {
+    // Fallback: place after the last relevant sibling on this axis
+    const sortedByPos = [...relevantSiblings].sort((a, b) => getSiblingPos(a) - getSiblingPos(b));
+    const lastRelevant = sortedByPos[sortedByPos.length - 1];
+    return getSiblingPos(lastRelevant) + getSiblingDimension(lastRelevant) + NODE_GAP;
+  }
+};
+
 export const useMindMapNodes = () => {
   const [nodes, setNodes] = useState(initialNodes);
 
@@ -68,49 +115,13 @@ export const useMindMapNodes = () => {
               return direction === 'right' ? (sib.x || 0) >= 0 : (sib.x || 0) < 0;
             });
 
-            if (relevantSiblings.length === 0) {
-              newY = 0;
-            } else {
-              let potentialYSlots = [0]; // Start with parent's center
-              relevantSiblings.forEach(sib => {
-                const sibY = sib.y || 0;
-                const sibHeight = sib.height || defaultNewNodeHeight;
-                potentialYSlots.push(sibY + sibHeight + NODE_GAP); // Below sibling
-                potentialYSlots.push(sibY - defaultNewNodeHeight - NODE_GAP); // Above sibling
-              });
-              potentialYSlots = [...new Set(potentialYSlots)]; // Unique slots
-
-              const validYSlots = potentialYSlots.filter(yStart => {
-                const newNodeTop = yStart;
-                const newNodeBottom = yStart + defaultNewNodeHeight;
-                let isCollision = false;
-                for (const sib of relevantSiblings) {
-                  const sibTop = sib.y || 0;
-                  const sibHeight = sib.height || defaultNewNodeHeight;
-                  const sibBottom = sibTop + sibHeight;
-                  if (newNodeTop < sibBottom && newNodeBottom > sibTop) {
-                    isCollision = true;
-                    break;
-                  }
-                }
-                return !isCollision;
-              });
-
-              if (validYSlots.length > 0) {
-                validYSlots.sort((a, b) => {
-                  const absA = Math.abs(a);
-                  const absB = Math.abs(b);
-                  if (absA !== absB) return absA - absB;
-                  return a >= 0 ? -1 : 1; // Prefer non-negative if abs values are equal
-                });
-                newY = validYSlots[0];
-              } else {
-                // Fallback: place below the lowest relevant sibling
-                const sortedByY = [...relevantSiblings].sort((a,b) => (a.y || 0) - (b.y || 0));
-                const lastRelevant = sortedByY[sortedByY.length -1];
-                newY = (lastRelevant.y || 0) + (lastRelevant.height || defaultNewNodeHeight) + NODE_GAP;
-              }
-            }
+            newY = findOptimalSlotPosition(
+              relevantSiblings,
+              defaultNewNodeHeight,
+              (sib) => sib.y || 0,
+              (sib) => sib.height || defaultNewNodeHeight,
+              NODE_GAP
+            );
           } else if (direction === 'top' || direction === 'bottom') {
             newY = (direction === 'bottom') ? (pHeight + 80) : -(defaultNewNodeHeight + 80);
             // Filter siblings to only those on the same side (bottom: y >= 0, top: y < 0)
@@ -118,49 +129,13 @@ export const useMindMapNodes = () => {
               return direction === 'bottom' ? (sib.y || 0) >= 0 : (sib.y || 0) < 0;
             });
 
-            if (relevantSiblings.length === 0) {
-              newX = 0;
-            } else {
-              let potentialXSlots = [0]; // Start with parent's center
-              relevantSiblings.forEach(sib => {
-                const sibX = sib.x || 0;
-                const sibWidth = sib.width || defaultNewNodeWidth;
-                potentialXSlots.push(sibX + sibWidth + NODE_GAP); // Right of sibling
-                potentialXSlots.push(sibX - defaultNewNodeWidth - NODE_GAP); // Left of sibling
-              });
-              potentialXSlots = [...new Set(potentialXSlots)]; // Unique slots
-
-              const validXSlots = potentialXSlots.filter(xStart => {
-                const newNodeLeft = xStart;
-                const newNodeRight = xStart + defaultNewNodeWidth;
-                let isCollision = false;
-                for (const sib of relevantSiblings) {
-                  const sibLeft = sib.x || 0;
-                  const sibWidth = sib.width || defaultNewNodeWidth;
-                  const sibRight = sibLeft + sibWidth;
-                  if (newNodeLeft < sibRight && newNodeRight > sibLeft) {
-                    isCollision = true;
-                    break;
-                  }
-                }
-                return !isCollision;
-              });
-
-              if (validXSlots.length > 0) {
-                validXSlots.sort((a, b) => {
-                  const absA = Math.abs(a);
-                  const absB = Math.abs(b);
-                  if (absA !== absB) return absA - absB;
-                  return a >= 0 ? -1 : 1; // Prefer non-negative if abs values are equal
-                });
-                newX = validXSlots[0];
-              } else {
-                // Fallback: place to the right of the rightmost relevant sibling
-                const sortedByX = [...relevantSiblings].sort((a,b) => (a.x || 0) - (b.x || 0));
-                const lastRelevant = sortedByX[sortedByX.length - 1];
-                newX = (lastRelevant.x || 0) + (lastRelevant.width || defaultNewNodeWidth) + NODE_GAP;
-              }
-            }
+            newX = findOptimalSlotPosition(
+              relevantSiblings,
+              defaultNewNodeWidth,
+              (sib) => sib.x || 0,
+              (sib) => sib.width || defaultNewNodeWidth,
+              NODE_GAP
+            );
           } else { // Default fallback for unknown direction
             newX = pWidth + 80;
             newY = 0;
