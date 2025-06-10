@@ -68,11 +68,13 @@ task list:
 13. [ ] Allow multiple nodes to be selected and dragged together
 14. [ ] Allow multiple nodes to be selected and deleted together
 15. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
-16. [ ] Child nodes shouldn't be able to add a node in it's parent direction
-17. [ ] add the export and import functionality
+16. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
+17. [ ] Child nodes shouldn't be able to add a node in it's parent direction
+18. [ ] add the export and import functionality
 
 known bugs/issues:
 1. [] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
-2. [] when a node enters text edit mode it's width increases, it should stay as is
+2. [] arrow lengths for right and left child nodes are not the same
+3. [] when a node enters text edit mode it's width increases, it should stay as is
     it could be a css issue or it could be because we are using a separate component
-3. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
+4. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
