@@ -7,7 +7,7 @@ import { useMindMapArrows } from './hooks/useMindMapArrows.js'; // Import the ar
 import MindMapCanvas from './components/MindMapCanvas/MindMapCanvas.jsx'; // Import the new canvas component
 import CanvasControls from './components/CanvasControls';
 
-const MIN_ZOOM = 0.1; // 10%
+const MIN_ZOOM = 0.5; // 50%
 const MAX_ZOOM = 2.0; // 200%
 
 function App() {
