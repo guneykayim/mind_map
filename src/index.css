@@ -57,5 +57,8 @@ body, html {
   overflow: auto; /* This will be for the content inside, not the zoom controls */
 }
 
-/* Zoom Controls Styling - MOVED TO src/components/ZoomControls/ZoomControls.css */
-
+/* Disable text selection while panning the canvas */
+body.is-panning {
+  user-select: none;
+  -webkit-user-select: none; /* For Safari */
+}

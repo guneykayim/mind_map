@@ -5,7 +5,7 @@ import Arrow from './components/Arrow';
 import { useMindMapNodes } from './hooks/useMindMapNodes.js'; // Import the custom hook
 import { useMindMapArrows } from './hooks/useMindMapArrows.js'; // Import the arrow hook
 import MindMapCanvas from './components/MindMapCanvas/MindMapCanvas.jsx'; // Import the new canvas component
-import ZoomControls from './components/ZoomControls';
+import CanvasControls from './components/CanvasControls';
 
 const MIN_ZOOM = 0.1; // 10%
 const MAX_ZOOM = 2.0; // 200%
@@ -33,6 +33,7 @@ function App() {
   const [draggingNodeInfo, setDraggingNodeInfo] = useState(null);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1); // Default zoom 100%
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const arrowData = useMindMapArrows(nodes, nodeRefs.current, draggingNodeInfo, zoomLevel, canvasContentRef);
 
   // Get the computed width from CSS
@@ -123,12 +124,15 @@ function App() {
         onNodeSelect={setSelectedNodeId}
         zoomLevel={zoomLevel} // Pass zoomLevel to MindMapCanvas
         canvasContentRef={canvasContentRef} // Pass the ref to MindMapCanvas
+        panOffset={panOffset}
+        setPanOffset={setPanOffset}
       />
-      <ZoomControls 
+      <CanvasControls 
         zoomLevel={zoomLevel}
         setZoomLevel={setZoomLevel}
         minZoom={MIN_ZOOM}
         maxZoom={MAX_ZOOM}
+        setPanOffset={setPanOffset}
       />
     </div>
   );
