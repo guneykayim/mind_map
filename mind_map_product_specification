@@ -77,5 +77,5 @@ known bugs/issues:
 2. [] arrow lengths for right and left child nodes are not the same
 3. [+] when a node enters text edit mode it's width increases, it should stay as is
     it could be a css issue or it could be because we are using a separate component
-4. [] a node should be draggable from the text area as well, not just the border, previously it was done like this because it was simpler, but now this is a bad UX. also it is important not to break text editing functionality when adding this drag option, double click to edit text should still work
+4. [+] a node should be draggable from the text area as well, not just the border, previously it was done like this because it was simpler, but now this is a bad UX. also it is important not to break text editing functionality when adding this drag option, double click to edit text should still work
 5. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens

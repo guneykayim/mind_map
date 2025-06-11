@@ -19,10 +19,6 @@ const NodeText = ({ text, onTextChange, isEditing, setIsEditing, onStartEditing 
     }
   };
 
-  const handleMouseDown = (e) => {
-    e.stopPropagation();
-  };
-
   return isEditing ? (
     <input
       type="text"
@@ -40,7 +36,7 @@ const NodeText = ({ text, onTextChange, isEditing, setIsEditing, onStartEditing 
         e.stopPropagation();
         onStartEditing();
       }}
-      onMouseDown={handleMouseDown}
+
     >
       {text}
     </span>
