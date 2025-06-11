@@ -8,6 +8,7 @@ const noop = () => {};
 function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, /*leftPanelWidth,*/ setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop, zoomLevel = 1, canvasContentRef }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [editingWidth, setEditingWidth] = useState(null);
   const [hoveredDirection, setHoveredDirection] = useState(null);
   const nodeRef = useRef(null);
   const dragState = useRef({
@@ -26,7 +27,10 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     }
   }, [isEditing, onSelect]);
 
-  const handleDoubleClick = useCallback(() => {
+  const handleStartEditing = useCallback(() => {
+    if (nodeRef.current) {
+      setEditingWidth(nodeRef.current.offsetWidth);
+    }
     setIsEditing(true);
   }, []);
 
@@ -203,6 +207,7 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
   };
 
   const handleTextChange = (newText) => {
+    setEditingWidth(null);
     setIsEditing(false);
     if (onTextChange) {
       onTextChange(newText);
@@ -216,10 +221,12 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
         if (setNodeRef) setNodeRef(el);
       }}
       className={`${styles.node} ${isEditing ? styles.isEditing : ''} ${isSelected ? styles.selected : ''}`}
-      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      style={{
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        width: isEditing && editingWidth ? `${editingWidth}px` : undefined,
+      }}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
       onMouseEnter={() => !isEditing && !dragState.current.isDragging && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -229,6 +236,7 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
         setIsEditing={setIsEditing}
         onTextChange={onTextChange || noop}
         onBlur={handleTextChange}
+        onStartEditing={handleStartEditing}
       />
       {isHovered && showAddButtons && (
         <>

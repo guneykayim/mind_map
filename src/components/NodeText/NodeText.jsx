@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './NodeText.module.css';
 
-const NodeText = ({ text, onTextChange, isEditing, setIsEditing }) => {
+const NodeText = ({ text, onTextChange, isEditing, setIsEditing, onStartEditing }) => {
   const handleBlur = (e) => {
     setIsEditing(false);
     onTextChange(e.target.value);
@@ -38,7 +38,7 @@ const NodeText = ({ text, onTextChange, isEditing, setIsEditing }) => {
       className={styles.text}
       onDoubleClick={(e) => {
         e.stopPropagation();
-        setIsEditing(true);
+        onStartEditing();
       }}
       onMouseDown={handleMouseDown}
     >
