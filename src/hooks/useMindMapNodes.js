@@ -113,7 +113,7 @@ export const useMindMapNodes = () => {
           let primaryOffset, secondaryOffset;
 
           if (direction === 'right' || direction === 'left') {
-            primaryOffset = (direction === 'right') ? (pWidth + 80) : -(defaultNewNodeWidth + 80); // This is x-offset
+            primaryOffset = (direction === 'right') ? (pWidth + 80) : -(pWidth + 80); // This is x-offset
             
             const relevantSiblings = siblings.filter(sib => {
               const sibX = sib.x || 0;
@@ -133,7 +133,7 @@ export const useMindMapNodes = () => {
             finalNewNodeY = parentAbsoluteY + secondaryOffset;
 
           } else if (direction === 'top' || direction === 'bottom') {
-            primaryOffset = (direction === 'bottom') ? (pHeight + 80) : -(defaultNewNodeHeight + 80); // This is y-offset
+            primaryOffset = (direction === 'bottom') ? (pHeight + 80) : -(pHeight + 80); // This is y-offset
 
             const relevantSiblings = siblings.filter(sib => {
               const sibY = sib.y || 0;
