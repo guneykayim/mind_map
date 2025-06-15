@@ -64,13 +64,17 @@ task list:
     user should be able to scroll the canvas by using mouse wheel
     user should be able to scroll the canvas by using touchpad
     add a button to reset the canvas scroll position to the center
-12. [ ] Make zooming in the center of the screen, not top left
-13. [ ] Allow multiple nodes to be selected and dragged together
-14. [ ] Allow multiple nodes to be selected and deleted together
-15. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
-16. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
-17. [ ] Child nodes shouldn't be able to add a node in it's parent direction
-18. [ ] add the export and import functionality
+12. [+] remove support for adding nodes to top and bottom
+    we will only support adding nodes to left and right
+    remove + icons from top and bottom
+    delete all code related to top and bottom nodes
+13. [ ] Make zooming in the center of the screen, not top left
+14. [ ] Allow multiple nodes to be selected and dragged together
+15. [ ] Allow multiple nodes to be selected and deleted together
+16. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
+17. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
+18. [ ] Child nodes shouldn't be able to add a node in it's parent direction
+19. [ ] add the export and import functionality
 
 known bugs/issues:
 1. [] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all

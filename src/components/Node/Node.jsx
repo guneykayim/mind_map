@@ -9,7 +9,7 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [editingWidth, setEditingWidth] = useState(null);
-  const [hoveredDirection, setHoveredDirection] = useState(null);
+
   const nodeRef = useRef(null);
   const dragState = useRef({
     isDragging: false,
@@ -240,37 +240,17 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
       />
       {isHovered && showAddButtons && (
         <>
+
           <button 
-            className={
-              styles.addNodeButton +
-              ' ' + styles.top +
-              (hoveredDirection === 'top' ? ' ' + styles.hovered : '')
-            }
-            onMouseEnter={() => setHoveredDirection('top')}
-            onMouseLeave={() => setHoveredDirection(null)}
-            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('top'); }}
-            title="Add node above"
-          >+</button>
-          <button 
-            className={`${styles.addNodeButton} ${styles.right} ${hoveredDirection === 'right' ? styles.hovered : ''}`}
+            className={`${styles.addNodeButton} ${styles.right}`}
             onClick={(event) => { event.stopPropagation(); handleAddNodeClick('right'); }}
             title="Add node to the right"
-            onMouseEnter={() => setHoveredDirection('right')}
-            onMouseLeave={() => setHoveredDirection(null)}
           >+</button>
+
           <button 
-            className={`${styles.addNodeButton} ${styles.bottom} ${hoveredDirection === 'bottom' ? styles.hovered : ''}`}
-            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('bottom'); }}
-            title="Add node below"
-            onMouseEnter={() => setHoveredDirection('bottom')}
-            onMouseLeave={() => setHoveredDirection(null)}
-          >+</button>
-          <button 
-            className={`${styles.addNodeButton} ${styles.left} ${hoveredDirection === 'left' ? styles.hovered : ''}`}
+            className={`${styles.addNodeButton} ${styles.left}`}
             onClick={(event) => { event.stopPropagation(); handleAddNodeClick('left'); }}
             title="Add node to the left"
-            onMouseEnter={() => setHoveredDirection('left')}
-            onMouseLeave={() => setHoveredDirection(null)}
           >+</button>
         </>
       )}

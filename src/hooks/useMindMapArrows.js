@@ -18,10 +18,7 @@ const getEdgePoint = (rect, targetX, targetY, fixedSide = null) => {
         return { x: visualRectLeft, y: visualRectCenterY };
       case 'right':
         return { x: visualRectRight, y: visualRectCenterY };
-      case 'top':
-        return { x: visualRectCenterX, y: visualRectTop };
-      case 'bottom':
-        return { x: visualRectCenterX, y: visualRectBottom };
+
       default:
         // Fallthrough if fixedSide is invalid (should not happen with controlled inputs)
         break;
@@ -138,23 +135,12 @@ export const useMindMapArrows = (nodes, nodeRefs, draggingNodeInfo, zoomLevel = 
             const childRelY = childAbsoluteY - parentAbsoluteY;
             let parentFixedSide = null;
 
-            if (Math.abs(childRelX) > Math.abs(childRelY)) {
-              parentFixedSide = childRelX > 0 ? 'right' : 'left';
-            } else if (Math.abs(childRelY) > Math.abs(childRelX)) {
-              parentFixedSide = childRelY > 0 ? 'bottom' : 'top';
-            } else { // Equal magnitude or one/both are zero
-              if (childRelX !== 0) parentFixedSide = childRelX > 0 ? 'right' : 'left';
-              else if (childRelY !== 0) parentFixedSide = childRelY > 0 ? 'bottom' : 'top';
-              // Default if child is at same absolute spot or relative offset is (0,0)
-              else parentFixedSide = 'right'; 
-            }
+            parentFixedSide = childRelX > 0 ? 'right' : 'left';
 
             // Determine fixed side for child (facing the parent)
             let childFixedSide = null;
             if (parentFixedSide === 'right') childFixedSide = 'left';
             else if (parentFixedSide === 'left') childFixedSide = 'right';
-            else if (parentFixedSide === 'top') childFixedSide = 'bottom';
-            else if (parentFixedSide === 'bottom') childFixedSide = 'top';
             
             const vpStartPoint = getEdgePoint(parentRect, actualChildVisualCenterX, actualChildVisualCenterY, parentFixedSide);
             const vpEndPoint = getEdgePoint(childRect, actualParentVisualCenterX, actualParentVisualCenterY, childFixedSide);

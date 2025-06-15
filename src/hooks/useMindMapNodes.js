@@ -132,24 +132,6 @@ export const useMindMapNodes = () => {
             finalNewNodeX = parentAbsoluteX + primaryOffset;
             finalNewNodeY = parentAbsoluteY + secondaryOffset;
 
-          } else if (direction === 'top' || direction === 'bottom') {
-            primaryOffset = (direction === 'bottom') ? (pHeight + 80) : -(pHeight + 80); // This is y-offset
-
-            const relevantSiblings = siblings.filter(sib => {
-              const sibY = sib.y || 0;
-              return direction === 'bottom' ? sibY >= parentAbsoluteY : sibY < parentAbsoluteY;
-            });
-
-            secondaryOffset = findOptimalSlotPosition(
-              relevantSiblings,
-              defaultNewNodeWidth, // New node's width
-              (sib) => (sib.x || 0) - parentAbsoluteX, // Sibling's X relative to parent's X
-              (sib) => sib.width || defaultNewNodeWidth, // Sibling's width
-              NODE_GAP
-            ); // This is x-offset relative to parent's x
-
-            finalNewNodeX = parentAbsoluteX + secondaryOffset;
-            finalNewNodeY = parentAbsoluteY + primaryOffset;
           } else { // Default fallback: place it relative to parent's top-right
             finalNewNodeX = parentAbsoluteX + pWidth + 80;
             finalNewNodeY = parentAbsoluteY;

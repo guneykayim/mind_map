@@ -70,18 +70,12 @@
   box-shadow: var(--shadow-sm);
 }
 
-.addNodeButton.hovered {
+
+.addNodeButton:hover {
   width: 24px;
   height: 24px;
   font-size: 16px;
   color: white;
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  background-color: var(--color-primary-hover);
-}
-
-.addNodeButton:hover {
   background-color: var(--color-primary-hover);
   transform: scale(1.1);
 }
@@ -98,15 +92,7 @@
   transform: scale(1.1);
 }
 
-/* Position top/bottom buttons */
-.addNodeButton.top,
-.addNodeButton.bottom {
-  left: 50%;
-  transform: translateX(-50%);
-}
 
-.addNodeButton.top { top: 0; transform: translate(-50%, -50%); }
-.addNodeButton.bottom { bottom: 0; transform: translate(-50%, 50%); }
 
 /* Position left/right buttons */
 .addNodeButton.right,
@@ -119,7 +105,7 @@
 .addNodeButton.left { left: 0; transform: translate(-50%, -50%); }
 
 /* Hover states - maintain position while scaling */
-.addNodeButton.hovered.top { transform: translate(-50%, -50%); }
-.addNodeButton.hovered.right { transform: translate(50%, -50%); }
-.addNodeButton.hovered.bottom { transform: translate(-50%, 50%); }
-.addNodeButton.hovered.left { transform: translate(-50%, -50%); }
+
+
+
+
