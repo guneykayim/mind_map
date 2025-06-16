@@ -68,14 +68,22 @@ task list:
     we will only support adding nodes to left and right
     remove + icons from top and bottom
     delete all code related to top and bottom nodes
-13. [ ] Make zooming in the center of the screen, not top left
-14. [ ] Allow multiple nodes to be selected and dragged together
-15. [ ] Allow multiple nodes to be selected and deleted together
-16. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
-17. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
-18. [ ] Child nodes shouldn't be able to add a node in it's parent direction
-19. [ ] add the export and import functionality
-
+13. [+] Make zooming in the center of the canvas if it is done via canvas controls, not top left
+    if the screen is dragged, the center of the screen should be the center of the canvas
+    also allow zooming with mouse wheel when ctrl is pressed
+    don't change any other behavior of the zooming
+14. [ ] Simplify App.jsx
+15. [ ] Allow multiple nodes to be selected and dragged together
+16. [ ] Allow multiple nodes to be selected and deleted together
+17. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
+18. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
+19. [ ] Child nodes shouldn't be able to add a node in it's parent direction
+20. [ ] add the export and import functionality
+21. [ ] add auto save functionality
+22. [ ] if I try to refresh the screen, warn the user about unsaved changes
+23. [ ] add the undo and redo functionality
+24. [ ] Improve node text editing experience
+    instead of updating the width of the node only, update it's position if necessary (left child and root node)
 known bugs/issues:
 1. [] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
 2. [+] arrow lengths for right and left child nodes are not the same
@@ -83,3 +91,4 @@ known bugs/issues:
     it could be a css issue or it could be because we are using a separate component
 4. [+] a node should be draggable from the text area as well, not just the border, previously it was done like this because it was simpler, but now this is a bad UX. also it is important not to break text editing functionality when adding this drag option, double click to edit text should still work
 5. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
+6. [] when "reset view" button is pressed when the zoom level is different than 100% it doesn't reset to the correct center. in case zoom level is smaller center becomes closer to top left, and if the zoom level is bigger, center becomes closer to right bottom. 

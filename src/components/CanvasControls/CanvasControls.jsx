@@ -1,21 +1,21 @@
 import React from 'react';
 import styles from './CanvasControls.module.css';
 
-const CanvasControls = ({ zoomLevel, setZoomLevel, minZoom, maxZoom, setPanOffset }) => {
+const CanvasControls = ({ zoomLevel, onZoom, minZoom, maxZoom, setPanOffset }) => {
   const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.1, maxZoom));
+    onZoom(zoomLevel + 0.1);
   };
 
   const handleZoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 0.1, minZoom));
+    onZoom(zoomLevel - 0.1);
   };
 
   const handleResetZoom = () => {
-    setZoomLevel(1);
+    onZoom(1);
   };
 
   const handleSliderChange = (e) => {
-    setZoomLevel(parseFloat(e.target.value));
+    onZoom(parseFloat(e.target.value));
   };
 
   const handleResetPan = () => {

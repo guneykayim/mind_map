@@ -16,6 +16,8 @@ const MindMapCanvas = ({
   onNodeIsDragging,
   selectedNodeId,
   onNodeSelect,
+  onZoom, // New prop for handling zoom
+  canvasContainerRef, // Ref for the container
   canvasContentRef
 }) => {
   const panState = useRef({ isPanning: false, didPan: false });
@@ -29,11 +31,23 @@ const MindMapCanvas = ({
 
   const handleWheel = useCallback((e) => {
     e.preventDefault();
-    setPanOffset(prev => ({
-      x: prev.x - e.deltaX,
-      y: prev.y - e.deltaY,
-    }));
-  }, [setPanOffset]);
+    if (e.ctrlKey) {
+      const container = canvasContainerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const focalPoint = { 
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top 
+      };
+      const delta = e.deltaY * -0.005;
+      onZoom(zoomLevel + delta, focalPoint);
+    } else {
+      setPanOffset(prev => ({
+        x: prev.x - e.deltaX,
+        y: prev.y - e.deltaY,
+      }));
+    }
+  }, [zoomLevel, onZoom, setPanOffset, canvasContainerRef]);
 
   const handlePanMouseDown = useCallback((e) => {
     // Only pan if clicking on the canvas background
@@ -104,6 +118,7 @@ const MindMapCanvas = ({
 
   return (
     <div
+      ref={canvasContainerRef} // Attach ref to the container
       className="mind-map"
       onClick={handleCanvasClick}
       onWheel={handleWheel}

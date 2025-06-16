@@ -2,27 +2,24 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import './index.css';
 import Node from './components/Node';
 import Arrow from './components/Arrow';
-import { useMindMapNodes } from './hooks/useMindMapNodes.js'; // Import the custom hook
-import { useMindMapArrows } from './hooks/useMindMapArrows.js'; // Import the arrow hook
-import MindMapCanvas from './components/MindMapCanvas/MindMapCanvas.jsx'; // Import the new canvas component
+import { useMindMapNodes } from './hooks/useMindMapNodes.js';
+import { useMindMapArrows } from './hooks/useMindMapArrows.js';
+import { useZoomAndPan } from './hooks/useZoomAndPan.js';
+import MindMapCanvas from './components/MindMapCanvas/MindMapCanvas.jsx';
 import CanvasControls from './components/CanvasControls';
 
-const MIN_ZOOM = 0.5; // 50%
-const MAX_ZOOM = 2.0; // 200%
-
 function App() {
+  const canvasContainerRef = useRef(null); // Ref for the canvas container
   const canvasContentRef = useRef(null);
   const { 
     nodes, 
     addNode, 
     updateNodePosition, 
     handleTextChange,
-    deleteNode, // Added deleteNode
-    findNodeById,      // Now using this
-    // findNodeAndAbsPos  // Available if needed
+    deleteNode,
+    findNodeById,
   } = useMindMapNodes();
 
-  // Store refs to all node DOM elements by id
   const nodeRefs = useRef({});
   const setNodeRef = useCallback((id, el) => {
     if (el) nodeRefs.current[id] = el;
@@ -32,25 +29,29 @@ function App() {
   const [leftPanelWidth, setLeftPanelWidth] = useState(0);
   const [draggingNodeInfo, setDraggingNodeInfo] = useState(null);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [zoomLevel, setZoomLevel] = useState(1); // Default zoom 100%
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+
+  const { 
+    zoomLevel, 
+    panOffset, 
+    setPanOffset, 
+    handleZoom, 
+    MIN_ZOOM, 
+    MAX_ZOOM 
+  } = useZoomAndPan(canvasContainerRef);
+
   const arrowData = useMindMapArrows(nodes, nodeRefs.current, draggingNodeInfo, zoomLevel, canvasContentRef);
 
-  // Get the computed width from CSS
   useEffect(() => {
     const updateWidth = () => {
       if (leftPaneRef.current) {
         setLeftPanelWidth(leftPaneRef.current.offsetWidth);
       }
     };
-
-    // Initial measurement
     updateWidth();
-    
-    // Set up resize observer for responsive adjustments
     const resizeObserver = new ResizeObserver(updateWidth);
-    resizeObserver.observe(leftPaneRef.current);
-    
+    if (leftPaneRef.current) {
+      resizeObserver.observe(leftPaneRef.current);
+    }
     return () => {
       if (leftPaneRef.current) {
         resizeObserver.unobserve(leftPaneRef.current);
@@ -122,17 +123,19 @@ function App() {
         onNodeIsDragging={setDraggingNodeInfo}
         selectedNodeId={selectedNodeId}
         onNodeSelect={setSelectedNodeId}
-        zoomLevel={zoomLevel} // Pass zoomLevel to MindMapCanvas
-        canvasContentRef={canvasContentRef} // Pass the ref to MindMapCanvas
+        zoomLevel={zoomLevel}
         panOffset={panOffset}
         setPanOffset={setPanOffset}
+        onZoom={handleZoom}
+        canvasContainerRef={canvasContainerRef}
+        canvasContentRef={canvasContentRef}
       />
       <CanvasControls 
         zoomLevel={zoomLevel}
-        setZoomLevel={setZoomLevel}
+        onZoom={handleZoom}
         minZoom={MIN_ZOOM}
         maxZoom={MAX_ZOOM}
-        setPanOffset={setPanOffset}
+        setPanOffset={setPanOffset} // Keep this for the reset pan button
       />
     </div>
   );
