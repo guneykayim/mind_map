@@ -40,55 +40,26 @@ left pane will have
 - save button 
 - load button
 
-task list:
-1. [+] determine the tech stack
-2. [+] create a mind map with single node
-3. [+] make the node text editable
-4. [+] make the node draggable
-5. [+] add + icons on the node when hovered
-6. [+] add a new node to the mind map when + icon is clicked
-7. [+] added nodes should be connected to the parent node with an arrow 
-8. [+] make sure when the node is dragged, all the arrow connections are maintained 
-9. [+] Allow nodes to be deleted (by delete key, and it should also pop up are you sure dialog)
-10. [+] Make canvas zoomable: 
-    default zoom should be 100% but user should be able to zoom in and out
-    max zoom should be 200%
-    min zoom should be 10%
-    place a sticky zoom control in the right bottom corner of the canvas
-    zoom control should have + and - buttons
-    zoom control should have a slider as well
-    zoom control should have a reset button (100%)
-11. [+] Make the canvas infinite and scrollable
-    user should be able to scroll the canvas in any direction
-    user should be able to scroll the canvas by dragging the canvas
-    user should be able to scroll the canvas by using mouse wheel
-    user should be able to scroll the canvas by using touchpad
-    add a button to reset the canvas scroll position to the center
-12. [+] remove support for adding nodes to top and bottom
-    we will only support adding nodes to left and right
-    remove + icons from top and bottom
-    delete all code related to top and bottom nodes
-13. [+] Make zooming in the center of the canvas if it is done via canvas controls, not top left
-    if the screen is dragged, the center of the screen should be the center of the canvas
-    also allow zooming with mouse wheel when ctrl is pressed
-    don't change any other behavior of the zooming
-14. [+] Simplify App.jsx
-15. [ ] Allow multiple nodes to be selected and dragged together
-16. [ ] Allow multiple nodes to be selected and deleted together
-17. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
-18. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
-19. [ ] Child nodes shouldn't be able to add a node in it's parent direction
-20. [ ] add the export and import functionality
-21. [ ] add auto save functionality
-22. [ ] if I try to refresh the screen, warn the user about unsaved changes
-23. [ ] add the undo and redo functionality
-24. [ ] Improve node text editing experience
+PO task list (must have):
+1. [ ] if I try to refresh the screen, warn the user about unsaved changes
+2. [ ] Child nodes shouldn't be able to add a node in it's parent direction
+3. [ ] Allow multiple nodes to be selected and dragged together
+4. [ ] Allow multiple nodes to be selected and deleted together
+5. [ ] add the export and import functionality
+6. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
+
+P1 task list (should have):
+1. [ ] add clear the canvas button
+2. [ ] add auto save functionality
+3. [ ] add the undo and redo functionality
+
+P2 task list (good to have):
+1. [ ] Improve node text editing experience
     instead of updating the width of the node only, update it's position if necessary (left child and root node)
+2. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
+
+
+
 known bugs/issues:
 1. [] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
-2. [+] arrow lengths for right and left child nodes are not the same
-3. [+] when a node enters text edit mode it's width increases, it should stay as is
-    it could be a css issue or it could be because we are using a separate component
-4. [+] a node should be draggable from the text area as well, not just the border, previously it was done like this because it was simpler, but now this is a bad UX. also it is important not to break text editing functionality when adding this drag option, double click to edit text should still work
-5. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
-6. [+] when "reset view" button is pressed when the zoom level is different than 100% it doesn't reset to the correct center. in case zoom level is smaller center becomes closer to top left, and if the zoom level is bigger, center becomes closer to right bottom. 
+2. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
