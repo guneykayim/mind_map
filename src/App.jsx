@@ -33,11 +33,14 @@ function App() {
     panOffset, 
     setPanOffset, 
     handleZoom, 
+    resetView, 
     MIN_ZOOM, 
     MAX_ZOOM 
-  } = useZoomAndPan(canvasContainerRef);
+  } = useZoomAndPan(canvasContainerRef, nodes, nodeRefs);
 
   const arrowData = useMindMapArrows(nodes, nodeRefs.current, draggingNodeInfo, zoomLevel, canvasContentRef);
+
+
 
   return (
     <div className="app-container">
@@ -71,7 +74,7 @@ function App() {
         onZoom={handleZoom}
         minZoom={MIN_ZOOM}
         maxZoom={MAX_ZOOM}
-        setPanOffset={setPanOffset} // Keep this for the reset pan button
+        onResetPan={resetView}
       />
     </div>
   );

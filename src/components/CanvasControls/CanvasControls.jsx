@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './CanvasControls.module.css';
 
-const CanvasControls = ({ zoomLevel, onZoom, minZoom, maxZoom, setPanOffset }) => {
+const CanvasControls = ({ zoomLevel, onZoom, minZoom, maxZoom, onResetPan }) => {
   const handleZoomIn = () => {
     onZoom(zoomLevel + 0.1);
   };
@@ -19,7 +19,7 @@ const CanvasControls = ({ zoomLevel, onZoom, minZoom, maxZoom, setPanOffset }) =
   };
 
   const handleResetPan = () => {
-    setPanOffset({ x: 0, y: 0 });
+    onResetPan();
   };
 
   return (

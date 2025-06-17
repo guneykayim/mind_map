@@ -91,4 +91,4 @@ known bugs/issues:
     it could be a css issue or it could be because we are using a separate component
 4. [+] a node should be draggable from the text area as well, not just the border, previously it was done like this because it was simpler, but now this is a bad UX. also it is important not to break text editing functionality when adding this drag option, double click to edit text should still work
 5. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
-6. [] when "reset view" button is pressed when the zoom level is different than 100% it doesn't reset to the correct center. in case zoom level is smaller center becomes closer to top left, and if the zoom level is bigger, center becomes closer to right bottom. 
+6. [+] when "reset view" button is pressed when the zoom level is different than 100% it doesn't reset to the correct center. in case zoom level is smaller center becomes closer to top left, and if the zoom level is bigger, center becomes closer to right bottom. 
