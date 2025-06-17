@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 // Generate a simple unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -63,6 +63,7 @@ const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, ge
 
 export const useMindMapNodes = () => {
   const [nodes, setNodes] = useState(initialNodes);
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
 
   const findNodeById = useCallback((nodeList, nodeId) => {
     for (const node of nodeList) {
@@ -229,6 +230,41 @@ export const useMindMapNodes = () => {
     });
   }, [setNodes]);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const targetTagName = event.target.tagName.toLowerCase();
+      if (targetTagName === 'input' || targetTagName === 'textarea') {
+        return;
+      }
+
+      if (selectedNodeId && (event.key === 'Delete' || event.key === 'Backspace')) {
+        if (selectedNodeId === 'root') {
+          return;
+        }
+
+        if (event.key === 'Backspace') {
+            event.preventDefault();
+        }
+
+        const nodeToConfirm = findNodeById(nodes, selectedNodeId);
+        const confirmationMessage = nodeToConfirm
+          ? `Are you sure you want to delete node "${nodeToConfirm.text}" and all its children?`
+          : `Are you sure you want to delete node with ID "${selectedNodeId}" and all its children?`;
+
+        if (window.confirm(confirmationMessage)) {
+          deleteNode(selectedNodeId);
+          setSelectedNodeId(null);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedNodeId, deleteNode, nodes, findNodeById]);
+
   return {
     nodes,
     addNode,
@@ -236,6 +272,8 @@ export const useMindMapNodes = () => {
     handleTextChange,
     findNodeById,
     findNodeAndAbsPos,
-    deleteNode
+    deleteNode,
+    selectedNodeId,
+    setSelectedNodeId
   };
 };

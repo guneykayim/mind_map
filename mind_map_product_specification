@@ -72,7 +72,7 @@ task list:
     if the screen is dragged, the center of the screen should be the center of the canvas
     also allow zooming with mouse wheel when ctrl is pressed
     don't change any other behavior of the zooming
-14. [ ] Simplify App.jsx
+14. [+] Simplify App.jsx
 15. [ ] Allow multiple nodes to be selected and dragged together
 16. [ ] Allow multiple nodes to be selected and deleted together
 17. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
