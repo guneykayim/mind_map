@@ -64,6 +64,7 @@ const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, ge
 export const useMindMapNodes = () => {
   const [nodes, setNodes] = useState(initialNodes);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const findNodeById = useCallback((nodeList, nodeId) => {
     for (const node of nodeList) {
@@ -98,6 +99,7 @@ export const useMindMapNodes = () => {
     const defaultNewNodeHeight = 60;
     const NODE_GAP = 20;
 
+    setHasUnsavedChanges(true);
     setNodes(prevNodes => {
       const updateNodeTree = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
         if (node.id === parentId) {
@@ -178,6 +180,7 @@ export const useMindMapNodes = () => {
   };
 
   const updateNodePosition = useCallback((nodeId, newAbsoluteX, newAbsoluteY) => {
+    setHasUnsavedChanges(true);
     setNodes(prevNodes => {
       // newAbsoluteX and newAbsoluteY are the new absolute coordinates for the node.
       const updatePosRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
@@ -194,6 +197,7 @@ export const useMindMapNodes = () => {
   }, [setNodes]);
 
   const handleTextChange = useCallback((nodeId, newText) => {
+    setHasUnsavedChanges(true);
     setNodes(prevNodes => {
       const updateTextRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
         if (node.id === nodeId) {
@@ -209,6 +213,7 @@ export const useMindMapNodes = () => {
   }, [setNodes]);
 
   const deleteNode = useCallback((nodeIdToDelete) => {
+    setHasUnsavedChanges(true);
     setNodes(prevNodes => {
       const recursivelyDelete = (currentNodes, targetId) => {
         if (!currentNodes || currentNodes.length === 0) {
@@ -264,6 +269,21 @@ export const useMindMapNodes = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedNodeId, deleteNode, nodes, findNodeById]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (hasUnsavedChanges) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
 
   return {
     nodes,

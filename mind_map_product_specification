@@ -41,7 +41,7 @@ left pane will have
 - load button
 
 PO task list (must have):
-1. [ ] if I try to refresh the screen, warn the user about unsaved changes
+1. [+] if I try to refresh the screen, warn the user about unsaved changes
 2. [ ] Child nodes shouldn't be able to add a node in it's parent direction
 3. [ ] Allow multiple nodes to be selected and dragged together
 4. [ ] Allow multiple nodes to be selected and deleted together
