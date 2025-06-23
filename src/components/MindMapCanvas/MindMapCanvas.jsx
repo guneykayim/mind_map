@@ -100,6 +100,7 @@ const MindMapCanvas = ({
             id={node.id}
             text={node.text || ''}
             position={{ x: node.x || 0, y: node.y || 0 }}
+            side={node.side}
             onTextChange={newText => handleTextChange(node.id, newText)}
             onPositionChange={(absoluteX, absoluteY) => updateNodePosition(node.id, absoluteX, absoluteY)}
             onAddNode={addNode}

@@ -140,12 +140,20 @@ export const useMindMapNodes = () => {
             finalNewNodeY = parentAbsoluteY;
           }
 
+          let side;
+          if (node.id === 'root') {
+            side = direction;
+          } else {
+            side = node.side;
+          }
+
           const newNode = {
             id: newId,
             text: 'New Node',
             x: finalNewNodeX, // Store absolute X
             y: finalNewNodeY, // Store absolute Y
-            children: []
+            children: [],
+            side,
           };
           return {
             ...parentNode,

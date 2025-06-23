@@ -5,7 +5,7 @@ import styles from './Node.module.css';
 // Move these outside the component to prevent recreation
 const noop = () => {};
 
-function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, /*leftPanelWidth,*/ setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop, zoomLevel = 1, canvasContentRef }) {
+function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, /*leftPanelWidth,*/ setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop, zoomLevel = 1, canvasContentRef, side }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [editingWidth, setEditingWidth] = useState(null);
@@ -240,18 +240,21 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
       />
       {isHovered && showAddButtons && (
         <>
+          {(id === 'root' || side === 'right') && (
+            <button 
+              className={`${styles.addNodeButton} ${styles.right}`}
+              onClick={(event) => { event.stopPropagation(); handleAddNodeClick('right'); }}
+              title="Add node to the right"
+            >+</button>
+          )}
 
-          <button 
-            className={`${styles.addNodeButton} ${styles.right}`}
-            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('right'); }}
-            title="Add node to the right"
-          >+</button>
-
-          <button 
-            className={`${styles.addNodeButton} ${styles.left}`}
-            onClick={(event) => { event.stopPropagation(); handleAddNodeClick('left'); }}
-            title="Add node to the left"
-          >+</button>
+          {(id === 'root' || side === 'left') && (
+            <button 
+              className={`${styles.addNodeButton} ${styles.left}`}
+              onClick={(event) => { event.stopPropagation(); handleAddNodeClick('left'); }}
+              title="Add node to the left"
+            >+</button>
+          )}
         </>
       )}
     </div>
