@@ -49,8 +49,14 @@ PO task list (must have):
     - All nodes can be selected by holding the shift key and clicking on them.
     - Clicking on a selected node should remove it from the selection list.
     - Clicking on the canvas when shift key is not pressed should remove all selected nodes.
-3.1 [ ] Allow multiple nodes to be selected and dragged together
-3.2 [ ] Allow multiple nodes to be selected and deleted together
+3.1 [ ] Allow multiple node selection simply by drawing a rectangle on the canvas with mouse
+    - When user clicks on the canvas, it should start drawing a rectangle
+    - When user releases the mouse, it should stop drawing the rectangle
+    - All nodes that are inside the rectangle should be selected
+    - All nodes that are outside the rectangle should be unselected
+    - While drawing the rectangle, it should show the rectangle with dashed lines on the canvas
+3.2 [ ] Allow multiple selected nodes to be dragged together
+3.3 [ ] Allow multiple selected nodes to be deleted together
 4. [ ] add the export and import functionality
 5. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
 

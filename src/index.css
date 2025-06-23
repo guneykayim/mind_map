@@ -69,3 +69,10 @@ body.shift-pressed * {
   -moz-user-select: none; /* For Firefox */
   -ms-user-select: none; /* For Internet Explorer/Edge */
 }
+
+.selection-rectangle {
+  position: absolute;
+  border: 1px dashed var(--color-primary);
+  background-color: rgba(0, 123, 255, 0.1);
+  pointer-events: none; /* Make sure it doesn't interfere with mouse events */
+}

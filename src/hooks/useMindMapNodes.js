@@ -328,6 +328,7 @@ export const useMindMapNodes = () => {
     deleteNode,
     selectedNodeIds,
     handleNodeSelection,
-    clearSelection
+    clearSelection,
+    setSelectedNodeIds,
   };
 };

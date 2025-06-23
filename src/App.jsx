@@ -17,7 +17,8 @@ function App() {
     handleTextChange,
     selectedNodeIds,
     handleNodeSelection,
-    clearSelection
+    clearSelection,
+    setSelectedNodeIds,
   } = useMindMapNodes();
 
   const nodeRefs = useRef({});
@@ -85,6 +86,8 @@ function App() {
         selectedNodeIds={selectedNodeIds}
         onNodeSelect={handleNodeSelection}
         onCanvasClick={clearSelection}
+        onSetSelectedNodeIds={setSelectedNodeIds}
+        nodeRefs={nodeRefs.current}
         zoomLevel={zoomLevel}
         panOffset={panOffset}
         setPanOffset={setPanOffset}

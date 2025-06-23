@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import Node from '../Node/Node';
 import Arrow from '../Arrow/Arrow';
 // import styles from './MindMapCanvas.module.css'; // Uncomment if you use specific styles
@@ -16,12 +16,16 @@ const MindMapCanvas = ({
   onNodeIsDragging,
   selectedNodeIds,
   onNodeSelect,
+  onSetSelectedNodeIds, // New prop for setting multiple nodes
   onCanvasClick,
   onZoom, // New prop for handling zoom
   canvasContainerRef, // Ref for the container
-  canvasContentRef
+  canvasContentRef,
+  nodeRefs
 }) => {
   const panState = useRef({ isPanning: false, didPan: false });
+  const selectionState = useRef({ isSelecting: false });
+  const [selectionRect, setSelectionRect] = useState(null);
 
   const canvasStyle = {
     transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
@@ -50,45 +54,106 @@ const MindMapCanvas = ({
     }
   }, [zoomLevel, onZoom, setPanOffset, canvasContainerRef]);
 
-  const handlePanMouseDown = useCallback((e) => {
-    // Only pan if shift is pressed and clicking on the canvas background
-    if (e.shiftKey && (e.target.classList.contains('mind-map-content-container') || e.target.classList.contains('mind-map'))) {
-      panState.current = { isPanning: true, didPan: false };
+  const handleMouseDown = useCallback((e) => {
+    const isBackgroundClick = e.target === e.currentTarget || e.target.classList.contains('mind-map-content-container');
+    if (!isBackgroundClick) return;
+
+    if (e.shiftKey) {
+      // --- START PANNING ---
+      panState.current = { isPanning: true, startX: e.clientX, startY: e.clientY, didPan: false };
       document.body.style.cursor = 'grabbing';
       document.body.classList.add('is-panning');
 
-      const handleMouseMove = (moveEvent) => {
-        if (panState.current.isPanning) {
-          panState.current.didPan = true;
-          setPanOffset(prev => ({
-            x: prev.x + moveEvent.movementX,
-            y: prev.y + moveEvent.movementY,
-          }));
-        }
+      const handlePanMove = (moveEvent) => {
+        if (!panState.current.isPanning) return;
+        panState.current.didPan = true;
+        const dx = moveEvent.clientX - panState.current.startX;
+        const dy = moveEvent.clientY - panState.current.startY;
+        setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+        panState.current.startX = moveEvent.clientX;
+        panState.current.startY = moveEvent.clientY;
       };
 
-      const handleMouseUp = () => {
+      const handlePanUp = () => {
         panState.current.isPanning = false;
         document.body.style.cursor = 'default';
         document.body.classList.remove('is-panning');
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', handlePanMove);
+        document.removeEventListener('mouseup', handlePanUp);
       };
 
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp, { once: true });
-    }
-  }, [setPanOffset]);
+      document.addEventListener('mousemove', handlePanMove);
+      document.addEventListener('mouseup', handlePanUp);
 
-  const handleCanvasClick = (e) => {
-    const didPan = panState.current.didPan;
-    panState.current.didPan = false; // Reset for the next click
+    } else {
+      // --- START SELECTION LOGIC ---
+      selectionState.current.isSelecting = true;
+      const canvasContainerRect = e.currentTarget.getBoundingClientRect();
+      const startX = e.clientX - canvasContainerRect.left;
+      const startY = e.clientY - canvasContainerRect.top;
+      
+      const currentSelectionRect = { startX, startY, endX: startX, endY: startY };
+      setSelectionRect(currentSelectionRect);
 
-    if (didPan || e.shiftKey) {
-      return; // Don't deselect if we just finished a pan or if shift is pressed
+      const handleSelectionMove = (moveEvent) => {
+        if (!selectionState.current.isSelecting) return;
+        currentSelectionRect.endX = moveEvent.clientX - canvasContainerRect.left;
+        currentSelectionRect.endY = moveEvent.clientY - canvasContainerRect.top;
+        setSelectionRect({ ...currentSelectionRect });
+      };
+
+      const handleSelectionUp = () => {
+        selectionState.current.isSelecting = false;
+        document.removeEventListener('mousemove', handleSelectionMove);
+        document.removeEventListener('mouseup', handleSelectionUp);
+
+        setSelectionRect(null);
+
+        const rect = {
+          x: Math.min(currentSelectionRect.startX, currentSelectionRect.endX),
+          y: Math.min(currentSelectionRect.startY, currentSelectionRect.endY),
+          width: Math.abs(currentSelectionRect.startX - currentSelectionRect.endX),
+          height: Math.abs(currentSelectionRect.startY - currentSelectionRect.endY),
+        };
+
+        // If the rectangle is tiny, treat it as a click to deselect all.
+        if (rect.width < 5 && rect.height < 5) {
+          onCanvasClick();
+          return;
+        }
+
+        const selectedIds = [];
+        const containerRect = canvasContainerRef.current.getBoundingClientRect();
+
+        Object.keys(nodeRefs).forEach(nodeId => {
+          const nodeEl = nodeRefs[nodeId];
+          if (!nodeEl) return;
+
+          const nodeRect = nodeEl.getBoundingClientRect();
+          // Check for intersection between the selection rectangle and the node's bounding box
+          if (
+            rect.x < nodeRect.right - containerRect.left &&
+            rect.x + rect.width > nodeRect.left - containerRect.left &&
+            rect.y < nodeRect.bottom - containerRect.top &&
+            rect.y + rect.height > nodeRect.top - containerRect.top
+          ) {
+            selectedIds.push(nodeId);
+          }
+        });
+
+        onSetSelectedNodeIds(selectedIds);
+      };
+
+      document.addEventListener('mousemove', handleSelectionMove);
+      document.addEventListener('mouseup', handleSelectionUp);
     }
-    onCanvasClick();
-  };
+  }, [
+    setPanOffset,
+    onSetSelectedNodeIds,
+    onCanvasClick,
+    nodeRefs,
+    canvasContainerRef,
+  ]);
 
   // Recursive rendering of nodes
   const renderNodeElements = (nodeList = nodes) => {
@@ -125,13 +190,23 @@ const MindMapCanvas = ({
     <div
       ref={canvasContainerRef} // Attach ref to the container
       className="mind-map"
-      onClick={handleCanvasClick}
       onWheel={handleWheel}
-      onMouseDown={handlePanMouseDown}
+      onMouseDown={handleMouseDown}
     >
+      {selectionRect && (
+        <div
+          className="selection-rectangle"
+          style={{
+            left: Math.min(selectionRect.startX, selectionRect.endX),
+            top: Math.min(selectionRect.startY, selectionRect.endY),
+            width: Math.abs(selectionRect.startX - selectionRect.endX),
+            height: Math.abs(selectionRect.startY - selectionRect.endY),
+          }}
+        />
+      )}
       <div ref={canvasContentRef} style={canvasStyle} className="mind-map-content-container">
         {arrowData.map(arrow => (
-          <Arrow key={arrow.id} from={arrow.from} to={arrow.to} />
+          <Arrow key={arrow.id} {...arrow} />
         ))}
         <div className="node-layer">
           {renderNodeElements()}
