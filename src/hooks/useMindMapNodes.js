@@ -266,6 +266,33 @@ export const useMindMapNodes = () => {
     setSelectedNodeIds([]);
   }, []);
 
+  // Function to get node text by ID
+  const getNodeTextById = useCallback((nodeId) => {
+    const node = findNodeById(nodes, nodeId);
+    return node ? node.text : `node with ID "${nodeId}"`;
+  }, [nodes, findNodeById]);
+
+  // Function to delete multiple nodes by their IDs
+  const deleteMultipleNodes = useCallback((nodeIds) => {
+    setHasUnsavedChanges(true);
+    setNodes(prevNodes => {
+      const recursivelyDeleteMultiple = (currentNodes, targetIds) => {
+        if (!currentNodes || currentNodes.length === 0) {
+          return [];
+        }
+        const targetIdsSet = new Set(targetIds);
+        
+        return currentNodes
+          .filter(node => !targetIdsSet.has(node.id)) // Remove nodes that are in the delete list
+          .map(node => ({
+            ...node,
+            children: node.children ? recursivelyDeleteMultiple(node.children, targetIds) : [] // Process children
+          }));
+      };
+      return recursivelyDeleteMultiple(prevNodes, nodeIds);
+    });
+  }, [setNodes]);
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       const targetTagName = event.target.tagName.toLowerCase();
@@ -273,25 +300,35 @@ export const useMindMapNodes = () => {
         return;
       }
 
-      // This logic will be expanded in task 3.2. For now, it handles single deletion.
-      if (selectedNodeIds.length === 1 && (event.key === 'Delete' || event.key === 'Backspace')) {
-        const nodeIdToDelete = selectedNodeIds[0];
-        if (nodeIdToDelete === 'root') {
-          return;
-        }
-
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedNodeIds.length > 0) {
+        // Prevent default for Backspace to avoid browser back navigation
         if (event.key === 'Backspace') {
-            event.preventDefault();
+          event.preventDefault();
         }
 
-        const nodeToConfirm = findNodeById(nodes, nodeIdToDelete);
-        const confirmationMessage = nodeToConfirm
-          ? `Are you sure you want to delete node "${nodeToConfirm.text}" and all its children?`
-          : `Are you sure you want to delete node with ID "${nodeIdToDelete}" and all its children?`;
+        // Filter out root node from deletion
+        const nodesToDelete = selectedNodeIds.filter(id => id !== 'root');
+        
+        if (nodesToDelete.length === 0) {
+          return; // Only root was selected, do nothing
+        }
+
+        // Create confirmation message
+        let confirmationMessage;
+        if (nodesToDelete.length === 1) {
+          const nodeText = getNodeTextById(nodesToDelete[0]);
+          confirmationMessage = `Are you sure you want to delete node "${nodeText}" and all its children?`;
+        } else {
+          const nodeTexts = nodesToDelete
+            .slice(0, 3)
+            .map(id => `"${getNodeTextById(id)}"`);
+          const moreText = nodesToDelete.length > 3 ? ` and ${nodesToDelete.length - 3} more` : '';
+          confirmationMessage = `Are you sure you want to delete ${nodesToDelete.length} nodes (${nodeTexts.join(', ')}${moreText}) and all their children?`;
+        }
 
         if (window.confirm(confirmationMessage)) {
-          deleteNode(nodeIdToDelete);
-          setSelectedNodeIds([]); // Clear selection
+          deleteMultipleNodes(nodesToDelete);
+          setSelectedNodeIds([]); // Clear selection after deletion
         }
       }
     };
@@ -301,7 +338,7 @@ export const useMindMapNodes = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedNodeIds, deleteNode, nodes, findNodeById]);
+  }, [selectedNodeIds, deleteMultipleNodes, getNodeTextById]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
