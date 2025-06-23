@@ -67,6 +67,5 @@ P2 task list (good to have):
 
 
 known bugs/issues:
-1. [] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
-2. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
-3. [] when multiple nodes are selected by shift+clicking, it selects/highlights the text of the nodes, it shouldn't happen.
+1. [ ] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
+2. [ ] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens

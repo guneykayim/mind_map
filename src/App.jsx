@@ -41,6 +41,27 @@ function App() {
 
   const arrowData = useMindMapArrows(nodes, nodeRefs.current, draggingNodeInfo, zoomLevel, canvasContentRef);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        document.body.classList.add('shift-pressed');
+      }
+    };
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        document.body.classList.remove('shift-pressed');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      document.body.classList.remove('shift-pressed'); // cleanup on unmount
+    };
+  }, []);
+
 
 
   return (

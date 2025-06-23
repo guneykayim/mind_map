@@ -51,8 +51,8 @@ const MindMapCanvas = ({
   }, [zoomLevel, onZoom, setPanOffset, canvasContainerRef]);
 
   const handlePanMouseDown = useCallback((e) => {
-    // Only pan if clicking on the canvas background
-    if (e.target.classList.contains('mind-map-content-container') || e.target.classList.contains('mind-map')) {
+    // Only pan if shift is pressed and clicking on the canvas background
+    if (e.shiftKey && (e.target.classList.contains('mind-map-content-container') || e.target.classList.contains('mind-map'))) {
       panState.current = { isPanning: true, didPan: false };
       document.body.style.cursor = 'grabbing';
       document.body.classList.add('is-panning');
@@ -81,7 +81,10 @@ const MindMapCanvas = ({
   }, [setPanOffset]);
 
   const handleCanvasClick = (e) => {
-    if (panState.current.didPan || e.shiftKey) {
+    const didPan = panState.current.didPan;
+    panState.current.didPan = false; // Reset for the next click
+
+    if (didPan || e.shiftKey) {
       return; // Don't deselect if we just finished a pan or if shift is pressed
     }
     onCanvasClick();

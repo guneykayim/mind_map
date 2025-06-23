@@ -62,3 +62,10 @@ body.is-panning {
   user-select: none;
   -webkit-user-select: none; /* For Safari */
 }
+
+body.shift-pressed * {
+  user-select: none;
+  -webkit-user-select: none; /* For Safari */
+  -moz-user-select: none; /* For Firefox */
+  -ms-user-select: none; /* For Internet Explorer/Edge */
+}
