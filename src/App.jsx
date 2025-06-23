@@ -15,8 +15,9 @@ function App() {
     addNode, 
     updateNodePosition, 
     handleTextChange,
-    selectedNodeId,
-    setSelectedNodeId
+    selectedNodeIds,
+    handleNodeSelection,
+    clearSelection
   } = useMindMapNodes();
 
   const nodeRefs = useRef({});
@@ -60,8 +61,9 @@ function App() {
         setNodeRef={setNodeRef}
         leftPanelWidth={leftPanelWidth}
         onNodeIsDragging={setDraggingNodeInfo}
-        selectedNodeId={selectedNodeId}
-        onNodeSelect={setSelectedNodeId}
+        selectedNodeIds={selectedNodeIds}
+        onNodeSelect={handleNodeSelection}
+        onCanvasClick={clearSelection}
         zoomLevel={zoomLevel}
         panOffset={panOffset}
         setPanOffset={setPanOffset}

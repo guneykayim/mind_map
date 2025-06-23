@@ -44,10 +44,15 @@ PO task list (must have):
 1. [+] if I try to refresh the screen, warn the user about unsaved changes
 2. [+] Child nodes shouldn't be able to add a node in it's parent direction
        let's say from root node I added right child, from that right child I should only be able to add right childs. Same goes from left child. a left child should only be able to add left childs.
-3. [ ] Allow multiple nodes to be selected and dragged together
-4. [ ] Allow multiple nodes to be selected and deleted together
-5. [ ] add the export and import functionality
-6. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
+3.0 [+] Update the code such that we don't store a selected node, but we store a list of selected nodes. 
+    - When 1 node is selected, it should be possible to another node to selection by holding the shift key and selecting the node. 
+    - All nodes can be selected by holding the shift key and clicking on them.
+    - Clicking on a selected node should remove it from the selection list.
+    - Clicking on the canvas when shift key is not pressed should remove all selected nodes.
+3.1 [ ] Allow multiple nodes to be selected and dragged together
+3.2 [ ] Allow multiple nodes to be selected and deleted together
+4. [ ] add the export and import functionality
+5. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
 
 P1 task list (should have):
 1. [ ] add clear the canvas button
@@ -64,3 +69,4 @@ P2 task list (good to have):
 known bugs/issues:
 1. [] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
 2. [] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
+3. [] when multiple nodes are selected by shift+clicking, it selects/highlights the text of the nodes, it shouldn't happen.

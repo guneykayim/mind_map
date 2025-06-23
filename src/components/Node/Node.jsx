@@ -23,7 +23,7 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
   const handleClick = useCallback((event) => {
     event.stopPropagation(); // Stop propagation
     if (!dragState.current.isDragging && !isEditing) {
-      onSelect();
+      onSelect(event);
     }
   }, [isEditing, onSelect]);
 

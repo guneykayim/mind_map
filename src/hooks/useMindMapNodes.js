@@ -63,7 +63,7 @@ const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, ge
 
 export const useMindMapNodes = () => {
   const [nodes, setNodes] = useState(initialNodes);
-  const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [selectedNodeIds, setSelectedNodeIds] = useState([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const findNodeById = useCallback((nodeList, nodeId) => {
@@ -243,6 +243,29 @@ export const useMindMapNodes = () => {
     });
   }, [setNodes]);
 
+    const handleNodeSelection = useCallback((nodeId, isShiftPressed) => {
+    setSelectedNodeIds(prevSelectedIds => {
+            if (isShiftPressed) {
+        const isSelected = prevSelectedIds.includes(nodeId);
+        if (isSelected) {
+          return prevSelectedIds.filter(id => id !== nodeId); // Toggle off
+        } else {
+          return [...prevSelectedIds, nodeId]; // Toggle on
+        }
+      }
+      // Not ctrl-pressed, select only this one
+      // If it's already the only one selected, deselect it. Otherwise, select just it.
+      if (prevSelectedIds.length === 1 && prevSelectedIds[0] === nodeId) {
+        return [];
+      }
+      return [nodeId];
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedNodeIds([]);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       const targetTagName = event.target.tagName.toLowerCase();
@@ -250,8 +273,10 @@ export const useMindMapNodes = () => {
         return;
       }
 
-      if (selectedNodeId && (event.key === 'Delete' || event.key === 'Backspace')) {
-        if (selectedNodeId === 'root') {
+      // This logic will be expanded in task 3.2. For now, it handles single deletion.
+      if (selectedNodeIds.length === 1 && (event.key === 'Delete' || event.key === 'Backspace')) {
+        const nodeIdToDelete = selectedNodeIds[0];
+        if (nodeIdToDelete === 'root') {
           return;
         }
 
@@ -259,14 +284,14 @@ export const useMindMapNodes = () => {
             event.preventDefault();
         }
 
-        const nodeToConfirm = findNodeById(nodes, selectedNodeId);
+        const nodeToConfirm = findNodeById(nodes, nodeIdToDelete);
         const confirmationMessage = nodeToConfirm
           ? `Are you sure you want to delete node "${nodeToConfirm.text}" and all its children?`
-          : `Are you sure you want to delete node with ID "${selectedNodeId}" and all its children?`;
+          : `Are you sure you want to delete node with ID "${nodeIdToDelete}" and all its children?`;
 
         if (window.confirm(confirmationMessage)) {
-          deleteNode(selectedNodeId);
-          setSelectedNodeId(null);
+          deleteNode(nodeIdToDelete);
+          setSelectedNodeIds([]); // Clear selection
         }
       }
     };
@@ -276,7 +301,7 @@ export const useMindMapNodes = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedNodeId, deleteNode, nodes, findNodeById]);
+  }, [selectedNodeIds, deleteNode, nodes, findNodeById]);
 
   useEffect(() => {
     const handleBeforeUnload = (event) => {
@@ -301,7 +326,8 @@ export const useMindMapNodes = () => {
     findNodeById,
     findNodeAndAbsPos,
     deleteNode,
-    selectedNodeId,
-    setSelectedNodeId
+    selectedNodeIds,
+    handleNodeSelection,
+    clearSelection
   };
 };

@@ -14,8 +14,9 @@ const MindMapCanvas = ({
   addNode,
   setNodeRef,
   onNodeIsDragging,
-  selectedNodeId,
+  selectedNodeIds,
   onNodeSelect,
+  onCanvasClick,
   onZoom, // New prop for handling zoom
   canvasContainerRef, // Ref for the container
   canvasContentRef
@@ -79,11 +80,11 @@ const MindMapCanvas = ({
     }
   }, [setPanOffset]);
 
-  const handleCanvasClick = () => {
-    if (panState.current.didPan) {
-      return; // Don't deselect if we just finished a pan
+  const handleCanvasClick = (e) => {
+    if (panState.current.didPan || e.shiftKey) {
+      return; // Don't deselect if we just finished a pan or if shift is pressed
     }
-    onNodeSelect(null);
+    onCanvasClick();
   };
 
   // Recursive rendering of nodes
@@ -106,8 +107,8 @@ const MindMapCanvas = ({
             onAddNode={addNode}
             setNodeRef={el => setNodeRef(node.id, el)}
             onNodeIsDragging={onNodeIsDragging}
-            isSelected={selectedNodeId === node.id}
-            onSelect={() => onNodeSelect(node.id)}
+            isSelected={selectedNodeIds.includes(node.id)}
+            onSelect={(e) => onNodeSelect(node.id, e.shiftKey)}
             zoomLevel={zoomLevel}
             canvasContentRef={canvasContentRef}
           />
