@@ -19,6 +19,9 @@ function App() {
     handleNodeSelection,
     clearSelection,
     setSelectedNodeIds,
+    findNodeById,
+    deleteSelectedNodes,
+    hasUnsavedChanges
   } = useMindMapNodes();
 
   const nodeRefs = useRef({});
@@ -29,6 +32,10 @@ function App() {
   const leftPaneRef = useRef(null);
   const leftPanelWidth = useResizeObserver(leftPaneRef);
   const [draggingNodeInfo, setDraggingNodeInfo] = useState(null);
+  const draggingNodeInfoRef = useRef(draggingNodeInfo);
+  useEffect(() => {
+    draggingNodeInfoRef.current = draggingNodeInfo;
+  }, [draggingNodeInfo]);
 
   const { 
     zoomLevel, 
@@ -41,6 +48,61 @@ function App() {
   } = useZoomAndPan(canvasContainerRef, nodes, nodeRefs);
 
   const arrowData = useMindMapArrows(nodes, nodeRefs.current, draggingNodeInfo, zoomLevel, canvasContentRef);
+
+  const handleNodeIsDragging = useCallback((dragInfo) => {
+    if (dragInfo === null) {
+      // Drag ended. Clear styles on all selected nodes to revert to transform-based positioning.
+      const lastDraggingInfo = draggingNodeInfoRef.current;
+      if (lastDraggingInfo) { // Use the last known dragging info
+        Object.keys(lastDraggingInfo).forEach(nodeId => {
+          const nodeEl = nodeRefs.current[nodeId];
+          if (nodeEl) {
+            nodeEl.style.left = '';
+            nodeEl.style.top = '';
+            // No need to reset transform, it's managed by React state
+          }
+        });
+      }
+      setDraggingNodeInfo(null);
+      return;
+    }
+
+    const { id, x, y } = dragInfo; // new absolute position for dragged node
+
+    const draggedNodeInState = findNodeById(nodes, id);
+    if (!draggedNodeInState) return;
+
+    const dx = x - draggedNodeInState.x;
+    const dy = y - draggedNodeInState.y;
+
+    const nodesToMove = selectedNodeIds.includes(id) ? selectedNodeIds : [id];
+
+    // For arrow updates
+    const newArrowDraggingInfo = {};
+    
+    nodesToMove.forEach(nodeId => {
+        const node = findNodeById(nodes, nodeId);
+        if (node) {
+            const newX = node.x + dx;
+            const newY = node.y + dy;
+            newArrowDraggingInfo[nodeId] = { x: newX, y: newY };
+
+            // Visually update node position
+            const nodeEl = nodeRefs.current[nodeId];
+            if (nodeEl) {
+                // The primary dragged node is updated within its own component
+                // for responsiveness. We only need to update the other nodes.
+                if (nodeId !== id) {
+                    nodeEl.style.left = `${newX}px`;
+                    nodeEl.style.top = `${newY}px`;
+                    nodeEl.style.transform = '';
+                }
+            }
+        }
+    });
+
+    setDraggingNodeInfo(newArrowDraggingInfo);
+  }, [nodes, selectedNodeIds, findNodeById]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -63,8 +125,6 @@ function App() {
     };
   }, []);
 
-
-
   return (
     <div className="app-container">
       <div 
@@ -82,7 +142,7 @@ function App() {
         addNode={addNode}
         setNodeRef={setNodeRef}
         leftPanelWidth={leftPanelWidth}
-        onNodeIsDragging={setDraggingNodeInfo}
+        onNodeIsDragging={handleNodeIsDragging}
         selectedNodeIds={selectedNodeIds}
         onNodeSelect={handleNodeSelection}
         onCanvasClick={clearSelection}

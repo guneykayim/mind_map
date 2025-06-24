@@ -110,21 +110,21 @@ export const useMindMapArrows = (nodes, nodeRefs, draggingNodeInfo, zoomLevel = 
               const containerOriginViewportX = containerRect.left;
               const containerOriginViewportY = containerRect.top;
 
-              if (draggingNodeInfo.id === parentNode.id) { // Parent node is being dragged
+              if (draggingNodeInfo[parentNode.id]) { // Parent node is being dragged
                 const unscaledWidth = parentRect.width / zoomLevel;
                 const unscaledHeight = parentRect.height / zoomLevel;
                 // draggingNodeInfo.x and .y are already absolute logical coordinates
-                const localUnscaledCenterX = draggingNodeInfo.x + unscaledWidth / 2;
-                const localUnscaledCenterY = draggingNodeInfo.y + unscaledHeight / 2;
+                const localUnscaledCenterX = draggingNodeInfo[parentNode.id].x + unscaledWidth / 2;
+                const localUnscaledCenterY = draggingNodeInfo[parentNode.id].y + unscaledHeight / 2;
                 actualParentVisualCenterX = (localUnscaledCenterX * zoomLevel) + containerOriginViewportX;
                 actualParentVisualCenterY = (localUnscaledCenterY * zoomLevel) + containerOriginViewportY;
               }
-              if (draggingNodeInfo.id === childNode.id) { // Child node is being dragged
+              if (draggingNodeInfo[childNode.id]) { // Child node is being dragged
                 const unscaledWidth = childRect.width / zoomLevel;
                 const unscaledHeight = childRect.height / zoomLevel;
                 // draggingNodeInfo.x and .y are already absolute logical coordinates
-                const localUnscaledCenterX = draggingNodeInfo.x + unscaledWidth / 2;
-                const localUnscaledCenterY = draggingNodeInfo.y + unscaledHeight / 2;
+                const localUnscaledCenterX = draggingNodeInfo[childNode.id].x + unscaledWidth / 2;
+                const localUnscaledCenterY = draggingNodeInfo[childNode.id].y + unscaledHeight / 2;
                 actualChildVisualCenterX = (localUnscaledCenterX * zoomLevel) + containerOriginViewportX;
                 actualChildVisualCenterY = (localUnscaledCenterY * zoomLevel) + containerOriginViewportY;
               }

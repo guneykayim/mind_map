@@ -190,19 +190,31 @@ export const useMindMapNodes = () => {
   const updateNodePosition = useCallback((nodeId, newAbsoluteX, newAbsoluteY) => {
     setHasUnsavedChanges(true);
     setNodes(prevNodes => {
-      // newAbsoluteX and newAbsoluteY are the new absolute coordinates for the node.
-      const updatePosRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
-        if (node.id === nodeId) {
-          return { ...node, x: newAbsoluteX, y: newAbsoluteY };
-        }
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: updatePosRecursive(node.children) };
-        }
-        return node;
-      });
+      const draggedNode = findNodeById(prevNodes, nodeId);
+      if (!draggedNode) return prevNodes;
+
+      const dx = newAbsoluteX - draggedNode.x;
+      const dy = newAbsoluteY - draggedNode.y;
+
+      const nodesToMove = selectedNodeIds.includes(nodeId) ? selectedNodeIds : [nodeId];
+      const nodesToMoveSet = new Set(nodesToMove);
+
+      const updatePosRecursive = (nodesToUpdate) => {
+        return nodesToUpdate.map(node => {
+          let newNode = { ...node };
+          if (nodesToMoveSet.has(node.id)) {
+            newNode.x = (node.x || 0) + dx;
+            newNode.y = (node.y || 0) + dy;
+          }
+          if (node.children && node.children.length > 0) {
+            newNode.children = updatePosRecursive(node.children);
+          }
+          return newNode;
+        });
+      };
       return updatePosRecursive(prevNodes);
     });
-  }, [setNodes]);
+  }, [setNodes, selectedNodeIds, findNodeById]);
 
   const handleTextChange = useCallback((nodeId, newText) => {
     setHasUnsavedChanges(true);

@@ -56,7 +56,7 @@ PO task list (must have):
     - All nodes that are outside the rectangle should be unselected
     - While drawing the rectangle, it should show the rectangle with dashed lines on the canvas
 3.2 [+] Allow multiple selected nodes to be deleted together
-3.3 [ ] Allow multiple selected nodes to be dragged together
+3.3 [+] Allow multiple selected nodes to be dragged together
 4. [ ] add the export and import functionality
 5. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
 
