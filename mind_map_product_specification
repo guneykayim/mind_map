@@ -58,6 +58,12 @@ PO task list (must have):
 3.2 [+] Allow multiple selected nodes to be deleted together
 3.3 [+] Allow multiple selected nodes to be dragged together
 4. [ ] add the export and import functionality
+    4.1 add a serialise function, which should simply convert everything in the canvas (nodes, their text, their children etc.)
+    4.2 add a de-serialise function, which should take a serialised data and convert it back to canvas objects (nodes, their text, their children etc.)
+    4.3 write a test which does serialisation and deserialisation and assert that it works correctly
+    4.4 implement the export functionality, which simply calls the serialisation function and then writes it as an xml file
+    4.5 implement the import functionality, which should take an imported file, loads it, calls the deserialisation function and render the screen with it
+    4.6 in the future we will add more data for nodes such as bg color, border color, text color etc, so the serialisation and deserialisation functions should have a proper structure for backwards compatibility support in the future.
 5. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
 
 P1 task list (should have):
