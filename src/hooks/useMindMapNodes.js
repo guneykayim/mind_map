@@ -1,4 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { 
+    findNodeById,
+    addNodeRecursive,
+    updatePositionRecursive,
+    updateTextRecursive,
+    deleteMultipleRecursive
+} from '../utils/nodeTreeUtils';
 
 // Generate a simple unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -71,91 +78,14 @@ export const useMindMapNodes = () => {
     draggingNodeInfoRef.current = draggingNodeInfo;
   }, [draggingNodeInfo]);
 
-  const findNodeById = useCallback((nodeList, nodeId) => {
-    for (const node of nodeList) {
-      if (node.id === nodeId) return node;
-      if (node.children) {
-        const found = findNodeById(node.children, nodeId);
-        if (found) return found;
-      }
-    }
-    return null;
-  }, []);
-
-  const addNode = useCallback((parentId, direction, dims = {}) => { // dims contains parentWidth, parentHeight from the actual DOM element
-    const newId = generateId();
-    const defaultNewNodeWidth = 120;
-    const defaultNewNodeHeight = 60;
-    const NODE_GAP = 20;
-
+  const addNode = useCallback((parentId, direction, dims = {}) => {
+    const newNode = {
+      id: generateId(),
+      text: 'New Node',
+      children: [],
+    };
     setHasUnsavedChanges(true);
-    setNodes(prevNodes => {
-      const updateNodeTree = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
-        if (node.id === parentId) {
-          const parentNode = node; // parentNode.x and parentNode.y are ABSOLUTE
-          const parentAbsoluteX = parentNode.x || 0;
-          const parentAbsoluteY = parentNode.y || 0;
-          const siblings = parentNode.children || []; // Siblings also have absolute x, y
-
-          const pWidth = dims.parentWidth || defaultNewNodeWidth; // Actual width of parent DOM element
-          const pHeight = dims.parentHeight || defaultNewNodeHeight; // Actual height of parent DOM element
-
-          let finalNewNodeX = 0;
-          let finalNewNodeY = 0;
-          let primaryOffset, secondaryOffset;
-
-          if (direction === 'right' || direction === 'left') {
-            primaryOffset = (direction === 'right') ? (pWidth + 80) : -(pWidth + 80); // This is x-offset
-            
-            const relevantSiblings = siblings.filter(sib => {
-              const sibX = sib.x || 0;
-              // Simplified: right means sib.x is generally to the right of parent's x, left means generally to the left.
-              return direction === 'right' ? sibX >= parentAbsoluteX : sibX < parentAbsoluteX;
-            });
-
-            secondaryOffset = findOptimalSlotPosition(
-              relevantSiblings,
-              defaultNewNodeHeight, // New node's height
-              (sib) => (sib.y || 0) - parentAbsoluteY, // Sibling's Y relative to parent's Y
-              (sib) => sib.height || defaultNewNodeHeight, // Sibling's height
-              NODE_GAP
-            ); // This is y-offset relative to parent's y
-
-            finalNewNodeX = parentAbsoluteX + primaryOffset;
-            finalNewNodeY = parentAbsoluteY + secondaryOffset;
-
-          } else { // Default fallback: place it relative to parent's top-right
-            finalNewNodeX = parentAbsoluteX + pWidth + 80;
-            finalNewNodeY = parentAbsoluteY;
-          }
-
-          let side;
-          if (node.id === 'root') {
-            side = direction;
-          } else {
-            side = node.side;
-          }
-
-          const newNode = {
-            id: newId,
-            text: 'New Node',
-            x: finalNewNodeX, // Store absolute X
-            y: finalNewNodeY, // Store absolute Y
-            children: [],
-            side,
-          };
-          return {
-            ...parentNode,
-            children: [...siblings, newNode]
-          };
-        }
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: updateNodeTree(node.children) };
-        }
-        return node;
-      });
-      return updateNodeTree(prevNodes);
-    });
+    setNodes(prevNodes => addNodeRecursive(prevNodes, parentId, direction, dims, newNode));
   }, [setNodes]);
 
   const handleNodeDrag = useCallback((dragInfo, nodeRefs) => {
@@ -225,37 +155,13 @@ export const useMindMapNodes = () => {
       const nodesToMove = selectedNodeIds.includes(nodeId) ? selectedNodeIds : [nodeId];
       const nodesToMoveSet = new Set(nodesToMove);
 
-      const updatePosRecursive = (nodesToUpdate) => {
-        return nodesToUpdate.map(node => {
-          let newNode = { ...node };
-          if (nodesToMoveSet.has(node.id)) {
-            newNode.x = (node.x || 0) + dx;
-            newNode.y = (node.y || 0) + dy;
-          }
-          if (node.children && node.children.length > 0) {
-            newNode.children = updatePosRecursive(node.children);
-          }
-          return newNode;
-        });
-      };
-      return updatePosRecursive(prevNodes);
+      return updatePositionRecursive(prevNodes, nodesToMoveSet, dx, dy);
     });
   }, [setNodes, selectedNodeIds, findNodeById]);
 
   const handleTextChange = useCallback((nodeId, newText) => {
     setHasUnsavedChanges(true);
-    setNodes(prevNodes => {
-      const updateTextRecursive = (currentNodesToUpdate) => currentNodesToUpdate.map(node => {
-        if (node.id === nodeId) {
-          return { ...node, text: newText };
-        }
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: updateTextRecursive(node.children) };
-        }
-        return node;
-      });
-      return updateTextRecursive(prevNodes);
-    });
+    setNodes(prevNodes => updateTextRecursive(prevNodes, nodeId, newText));
   }, [setNodes]);
 
   const deleteNode = useCallback((nodeIdToDelete) => {
@@ -313,22 +219,7 @@ export const useMindMapNodes = () => {
   // Function to delete multiple nodes by their IDs
   const deleteMultipleNodes = useCallback((nodeIds) => {
     setHasUnsavedChanges(true);
-    setNodes(prevNodes => {
-      const recursivelyDeleteMultiple = (currentNodes, targetIds) => {
-        if (!currentNodes || currentNodes.length === 0) {
-          return [];
-        }
-        const targetIdsSet = new Set(targetIds);
-        
-        return currentNodes
-          .filter(node => !targetIdsSet.has(node.id)) // Remove nodes that are in the delete list
-          .map(node => ({
-            ...node,
-            children: node.children ? recursivelyDeleteMultiple(node.children, targetIds) : [] // Process children
-          }));
-      };
-      return recursivelyDeleteMultiple(prevNodes, nodeIds);
-    });
+    setNodes(prevNodes => deleteMultipleRecursive(prevNodes, new Set(nodeIds)));
   }, [setNodes]);
 
   const deleteSelectedNodes = useCallback(() => {
