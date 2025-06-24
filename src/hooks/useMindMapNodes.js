@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 // Generate a simple unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -65,6 +65,11 @@ export const useMindMapNodes = () => {
   const [nodes, setNodes] = useState(initialNodes);
   const [selectedNodeIds, setSelectedNodeIds] = useState([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [draggingNodeInfo, setDraggingNodeInfo] = useState(null);
+  const draggingNodeInfoRef = useRef(draggingNodeInfo);
+  useEffect(() => {
+    draggingNodeInfoRef.current = draggingNodeInfo;
+  }, [draggingNodeInfo]);
 
   const findNodeById = useCallback((nodeList, nodeId) => {
     for (const node of nodeList) {
@@ -168,6 +173,61 @@ export const useMindMapNodes = () => {
       return updateNodeTree(prevNodes);
     });
   }, [setNodes]);
+
+  const handleNodeDrag = useCallback((dragInfo, nodeRefs) => {
+    if (dragInfo === null) {
+      // Drag ended. Clear styles on all selected nodes to revert to transform-based positioning.
+      const lastDraggingInfo = draggingNodeInfoRef.current;
+      if (lastDraggingInfo) { // Use the last known dragging info
+        Object.keys(lastDraggingInfo).forEach(nodeId => {
+          const nodeEl = nodeRefs[nodeId];
+          if (nodeEl) {
+            nodeEl.style.left = '';
+            nodeEl.style.top = '';
+            // No need to reset transform, it's managed by React state
+          }
+        });
+      }
+      setDraggingNodeInfo(null);
+      return;
+    }
+
+    const { id, x, y } = dragInfo; // new absolute position for dragged node
+
+    const draggedNodeInState = findNodeById(nodes, id);
+    if (!draggedNodeInState) return;
+
+    const dx = x - draggedNodeInState.x;
+    const dy = y - draggedNodeInState.y;
+
+    const nodesToMove = selectedNodeIds.includes(id) ? selectedNodeIds : [id];
+
+    // For arrow updates
+    const newArrowDraggingInfo = {};
+    
+    nodesToMove.forEach(nodeId => {
+        const node = findNodeById(nodes, nodeId);
+        if (node) {
+            const newX = node.x + dx;
+            const newY = node.y + dy;
+            newArrowDraggingInfo[nodeId] = { x: newX, y: newY };
+
+            // Visually update node position
+            const nodeEl = nodeRefs[nodeId];
+            if (nodeEl) {
+                // The primary dragged node is updated within its own component
+                // for responsiveness. We only need to update the other nodes.
+                if (nodeId !== id) {
+                    nodeEl.style.left = `${newX}px`;
+                    nodeEl.style.top = `${newY}px`;
+                    nodeEl.style.transform = '';
+                }
+            }
+        }
+    });
+
+    setDraggingNodeInfo(newArrowDraggingInfo);
+  }, [nodes, selectedNodeIds, findNodeById]);
 
   // Helper function to find the absolute position of a node's parent
   const findParentAbsolutePosition = (nodesToSearch, childId, currentParentAbsX = 0, currentParentAbsY = 0) => {
@@ -305,6 +365,29 @@ export const useMindMapNodes = () => {
     });
   }, [setNodes]);
 
+  const deleteSelectedNodes = useCallback(() => {
+    if (selectedNodeIds.length === 0) return;
+    setHasUnsavedChanges(true);
+    setNodes(prevNodes => {
+      const recursivelyDeleteMultiple = (currentNodes, targetIds) => {
+        if (!currentNodes || currentNodes.length === 0) {
+          return [];
+        }
+        const targetIdsSet = new Set(targetIds);
+        
+        return currentNodes
+          .filter(node => !targetIdsSet.has(node.id)) // Remove nodes that are in the delete list
+          .map(node => ({
+            ...node,
+            children: node.children ? recursivelyDeleteMultiple(node.children, targetIds) : [] // Process children
+          }));
+      };
+      return recursivelyDeleteMultiple(prevNodes, new Set(selectedNodeIds));
+    });
+    setSelectedNodeIds([]); // Clear selection after deletion
+  }, [selectedNodeIds]);
+
+  // Handle keydown events for node deletion
   useEffect(() => {
     const handleKeyDown = (event) => {
       const targetTagName = event.target.tagName.toLowerCase();
@@ -322,6 +405,9 @@ export const useMindMapNodes = () => {
         const nodesToDelete = selectedNodeIds.filter(id => id !== 'root');
         
         if (nodesToDelete.length === 0) {
+          if (selectedNodeIds.includes('root')) {
+            alert("The root node cannot be deleted.");
+          }
           return; // Only root was selected, do nothing
         }
 
@@ -340,7 +426,6 @@ export const useMindMapNodes = () => {
 
         if (window.confirm(confirmationMessage)) {
           deleteMultipleNodes(nodesToDelete);
-          setSelectedNodeIds([]); // Clear selection after deletion
         }
       }
     };
@@ -350,13 +435,15 @@ export const useMindMapNodes = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedNodeIds, deleteMultipleNodes, getNodeTextById]);
+  }, [selectedNodeIds, deleteSelectedNodes]);
 
+  // Warn user about unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       if (hasUnsavedChanges) {
         event.preventDefault();
-        event.returnValue = '';
+        event.returnValue = ''; // For modern browsers
+        return ''; // For older browsers
       }
     };
 
@@ -379,5 +466,9 @@ export const useMindMapNodes = () => {
     handleNodeSelection,
     clearSelection,
     setSelectedNodeIds,
+    deleteSelectedNodes,
+    hasUnsavedChanges,
+    draggingNodeInfo,
+    handleNodeDrag,
   };
 };
