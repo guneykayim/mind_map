@@ -8,6 +8,7 @@ import {
 } from '../utils/nodeTreeUtils';
 import { useNodeSelection } from './useNodeSelection';
 import { useNodeDrag } from './useNodeDrag';
+import { useMindMapEventListeners } from './useMindMapEventListeners';
 
 // Generate a simple unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -161,57 +162,9 @@ export const useMindMapNodes = () => {
       return recursivelyDeleteMultiple(prevNodes, new Set(selectedNodeIds));
     });
     setSelectedNodeIds([]); // Clear selection after deletion
-  }, [selectedNodeIds]);
+  }, [selectedNodeIds, setSelectedNodeIds]);
 
-  // Handle keydown events for node deletion
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      const targetTagName = event.target.tagName.toLowerCase();
-      if (targetTagName === 'input' || targetTagName === 'textarea') {
-        return;
-      }
-
-      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedNodeIds.length > 0) {
-        // Prevent default for Backspace to avoid browser back navigation
-        if (event.key === 'Backspace') {
-          event.preventDefault();
-        }
-
-        // Filter out root node from deletion
-        const nodesToDelete = selectedNodeIds.filter(id => id !== 'root');
-        
-        if (nodesToDelete.length === 0) {
-          if (selectedNodeIds.includes('root')) {
-            alert("The root node cannot be deleted.");
-          }
-          return; // Only root was selected, do nothing
-        }
-
-        // Create confirmation message
-        let confirmationMessage;
-        if (nodesToDelete.length === 1) {
-          const nodeText = getNodeTextById(nodesToDelete[0]);
-          confirmationMessage = `Are you sure you want to delete node "${nodeText}" and all its children?`;
-        } else {
-          const nodeTexts = nodesToDelete
-            .slice(0, 3)
-            .map(id => `"${getNodeTextById(id)}"`);
-          const moreText = nodesToDelete.length > 3 ? ` and ${nodesToDelete.length - 3} more` : '';
-          confirmationMessage = `Are you sure you want to delete ${nodesToDelete.length} nodes (${nodeTexts.join(', ')}${moreText}) and all their children?`;
-        }
-
-        if (window.confirm(confirmationMessage)) {
-          deleteMultipleNodes(nodesToDelete);
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedNodeIds, deleteSelectedNodes]);
+  useMindMapEventListeners(nodes, selectedNodeIds, deleteMultipleNodes);
 
   // Warn user about unsaved changes
   useEffect(() => {
@@ -229,12 +182,6 @@ export const useMindMapNodes = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [hasUnsavedChanges]);
-
-  // Function to get node text by ID
-  const getNodeTextById = useCallback((nodeId) => {
-    const node = findNodeById(nodes, nodeId);
-    return node ? node.text : `node with ID "${nodeId}"`;
-  }, [nodes, findNodeById]);
 
   return {
     nodes,
