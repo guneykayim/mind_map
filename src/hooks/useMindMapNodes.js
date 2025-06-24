@@ -82,22 +82,6 @@ export const useMindMapNodes = () => {
     return null;
   }, []);
 
-  const findNodeAndAbsPos = useCallback((targetNodeId, currentNodesParam, parentAbs = {x:0, y:0}) => {
-    const currentNodes = currentNodesParam === undefined ? nodes : currentNodesParam;
-    for (const node of currentNodes) {
-      const absX = parentAbs.x + (node.x || 0);
-      const absY = parentAbs.y + (node.y || 0);
-      if (node.id === targetNodeId) {
-        return { node, absX, absY };
-      }
-      if (node.children && node.children.length > 0) {
-        const found = findNodeAndAbsPos(targetNodeId, node.children, {x: absX, y: absY});
-        if (found) return found;
-      }
-    }
-    return null;
-  }, [nodes]);
-
   const addNode = useCallback((parentId, direction, dims = {}) => { // dims contains parentWidth, parentHeight from the actual DOM element
     const newId = generateId();
     const defaultNewNodeWidth = 120;
@@ -228,24 +212,6 @@ export const useMindMapNodes = () => {
 
     setDraggingNodeInfo(newArrowDraggingInfo);
   }, [nodes, selectedNodeIds, findNodeById]);
-
-  // Helper function to find the absolute position of a node's parent
-  const findParentAbsolutePosition = (nodesToSearch, childId, currentParentAbsX = 0, currentParentAbsY = 0) => {
-    for (const node of nodesToSearch) {
-      const nodeAbsX = currentParentAbsX + (node.x || 0);
-      const nodeAbsY = currentParentAbsY + (node.y || 0);
-      if (node.children && node.children.some(child => child.id === childId)) {
-        return { x: nodeAbsX, y: nodeAbsY }; // Found parent, return its absolute position
-      }
-      if (node.children && node.children.length > 0) {
-        const foundInChildren = findParentAbsolutePosition(node.children, childId, nodeAbsX, nodeAbsY);
-        if (foundInChildren) {
-          return foundInChildren;
-        }
-      }
-    }
-    return null; // No parent found (e.g., childId is a root node or not found)
-  };
 
   const updateNodePosition = useCallback((nodeId, newAbsoluteX, newAbsoluteY) => {
     setHasUnsavedChanges(true);
@@ -460,8 +426,6 @@ export const useMindMapNodes = () => {
     updateNodePosition,
     handleTextChange,
     findNodeById,
-    findNodeAndAbsPos,
-    deleteNode,
     selectedNodeIds,
     handleNodeSelection,
     clearSelection,
