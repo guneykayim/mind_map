@@ -23,9 +23,9 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
   const handleClick = useCallback((event) => {
     event.stopPropagation(); // Stop propagation
     if (!dragState.current.isDragging && !isEditing) {
-      onSelect(event);
+      onSelect(event, id);
     }
-  }, [isEditing, onSelect]);
+  }, [isEditing, onSelect, id]);
 
   const handleStartEditing = useCallback(() => {
     if (nodeRef.current) {

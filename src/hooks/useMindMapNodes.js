@@ -6,6 +6,7 @@ import {
     updateTextRecursive,
     deleteMultipleRecursive
 } from '../utils/nodeTreeUtils';
+import { useNodeSelection } from './useNodeSelection';
 
 // Generate a simple unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -70,7 +71,12 @@ const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, ge
 
 export const useMindMapNodes = () => {
   const [nodes, setNodes] = useState(initialNodes);
-  const [selectedNodeIds, setSelectedNodeIds] = useState([]);
+  const {
+    selectedNodeIds,
+    setSelectedNodeIds,
+    handleNodeSelection,
+    clearSelection,
+  } = useNodeSelection();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [draggingNodeInfo, setDraggingNodeInfo] = useState(null);
   const draggingNodeInfoRef = useRef(draggingNodeInfo);
@@ -187,36 +193,6 @@ export const useMindMapNodes = () => {
     });
   }, [setNodes]);
 
-    const handleNodeSelection = useCallback((nodeId, isShiftPressed) => {
-    setSelectedNodeIds(prevSelectedIds => {
-            if (isShiftPressed) {
-        const isSelected = prevSelectedIds.includes(nodeId);
-        if (isSelected) {
-          return prevSelectedIds.filter(id => id !== nodeId); // Toggle off
-        } else {
-          return [...prevSelectedIds, nodeId]; // Toggle on
-        }
-      }
-      // Not ctrl-pressed, select only this one
-      // If it's already the only one selected, deselect it. Otherwise, select just it.
-      if (prevSelectedIds.length === 1 && prevSelectedIds[0] === nodeId) {
-        return [];
-      }
-      return [nodeId];
-    });
-  }, []);
-
-  const clearSelection = useCallback(() => {
-    setSelectedNodeIds([]);
-  }, []);
-
-  // Function to get node text by ID
-  const getNodeTextById = useCallback((nodeId) => {
-    const node = findNodeById(nodes, nodeId);
-    return node ? node.text : `node with ID "${nodeId}"`;
-  }, [nodes, findNodeById]);
-
-  // Function to delete multiple nodes by their IDs
   const deleteMultipleNodes = useCallback((nodeIds) => {
     setHasUnsavedChanges(true);
     setNodes(prevNodes => deleteMultipleRecursive(prevNodes, new Set(nodeIds)));
@@ -311,6 +287,12 @@ export const useMindMapNodes = () => {
     };
   }, [hasUnsavedChanges]);
 
+  // Function to get node text by ID
+  const getNodeTextById = useCallback((nodeId) => {
+    const node = findNodeById(nodes, nodeId);
+    return node ? node.text : `node with ID "${nodeId}"`;
+  }, [nodes, findNodeById]);
+
   return {
     nodes,
     addNode,
@@ -325,5 +307,6 @@ export const useMindMapNodes = () => {
     hasUnsavedChanges,
     draggingNodeInfo,
     handleNodeDrag,
+    deleteMultipleNodes,
   };
 };

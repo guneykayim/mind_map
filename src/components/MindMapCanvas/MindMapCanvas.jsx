@@ -176,7 +176,7 @@ const MindMapCanvas = ({
             setNodeRef={el => setNodeRef(node.id, el)}
             onNodeIsDragging={onNodeIsDragging}
             isSelected={selectedNodeIds.includes(node.id)}
-            onSelect={(e) => onNodeSelect(node.id, e.shiftKey)}
+            onSelect={onNodeSelect}
             zoomLevel={zoomLevel}
             canvasContentRef={canvasContentRef}
           />
