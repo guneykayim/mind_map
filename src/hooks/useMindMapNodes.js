@@ -183,6 +183,27 @@ export const useMindMapNodes = () => {
     };
   }, [hasUnsavedChanges]);
 
+  const serialize = useCallback(() => {
+    return JSON.stringify(nodes, null, 2);
+  }, [nodes]);
+
+  const deserialize = useCallback((serializedData) => {
+    try {
+      const loadedNodes = JSON.parse(serializedData);
+      // Basic validation
+      if (Array.isArray(loadedNodes) && loadedNodes.length > 0) {
+        setNodes(loadedNodes);
+        setSelectedNodeIds([]);
+        setHasUnsavedChanges(false);
+      } else {
+        alert("Invalid or empty mind map data.");
+      }
+    } catch (error) {
+      console.error("Failed to deserialize mind map data:", error);
+      alert("Failed to load mind map. The file might be corrupted or in the wrong format.");
+    }
+  }, [setNodes, setSelectedNodeIds, setHasUnsavedChanges]);
+
   return {
     nodes,
     addNode,
@@ -198,5 +219,7 @@ export const useMindMapNodes = () => {
     draggingNodeInfo,
     handleNodeDrag,
     deleteMultipleNodes,
+    serialize,
+    deserialize,
   };
 };

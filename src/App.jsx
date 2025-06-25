@@ -4,12 +4,14 @@ import { useMindMapNodes } from './hooks/useMindMapNodes.js';
 import { useMindMapArrows } from './hooks/useMindMapArrows.js';
 import { useZoomAndPan } from './hooks/useZoomAndPan.js';
 import { useResizeObserver } from './hooks/useResizeObserver.js';
+import { useFileIO } from './hooks/useFileIO.js';
 import MindMapCanvas from './components/MindMapCanvas/MindMapCanvas.jsx';
 import CanvasControls from './components/CanvasControls';
 
 function App() {
   const canvasContainerRef = useRef(null); // Ref for the canvas container
   const canvasContentRef = useRef(null);
+  const [isJustLoaded, setIsJustLoaded] = useState(false);
   const { 
     nodes, 
     addNode, 
@@ -23,8 +25,19 @@ function App() {
     deleteSelectedNodes,
     hasUnsavedChanges,
     draggingNodeInfo,
-    handleNodeDrag
+    handleNodeDrag,
+    serialize,
+    deserialize,
   } = useMindMapNodes();
+
+  const { handleExport, handleImport } = useFileIO({
+    serialize,
+    deserialize: (data) => {
+      deserialize(data);
+      setIsJustLoaded(true);
+    },
+    hasUnsavedChanges,
+  });
 
   const nodeRefs = useRef({});
   const setNodeRef = useCallback((id, el) => {
@@ -47,6 +60,13 @@ function App() {
     MIN_ZOOM, 
     MAX_ZOOM 
   } = useZoomAndPan(canvasContainerRef, nodes, nodeRefs);
+
+  useEffect(() => {
+    if (isJustLoaded) {
+      resetView();
+      setIsJustLoaded(false);
+    }
+  }, [isJustLoaded, resetView]);
 
   const arrowData = useMindMapArrows(nodes, nodeRefs.current, draggingNodeInfo, zoomLevel, canvasContentRef);
 
@@ -77,8 +97,8 @@ function App() {
         ref={leftPaneRef}
         className="left-pane"
       >
-        <button className="save-button">Save</button>
-        <button className="load-button">Load</button>
+        <button className="save-button" onClick={handleExport}>Export</button>
+        <button className="load-button" onClick={handleImport}>Import</button>
       </div>
       <MindMapCanvas 
         nodes={nodes}
