@@ -8,6 +8,7 @@ import { useFileIO } from './hooks/useFileIO.js';
 import MindMapCanvas from './components/MindMapCanvas/MindMapCanvas.jsx';
 import CanvasControls from './components/CanvasControls';
 import Button from './components/Button';
+import Tips from './components/Tips';
 
 function App() {
   const canvasContainerRef = useRef(null); // Ref for the canvas container
@@ -101,8 +102,11 @@ function App() {
         ref={leftPaneRef}
         className="left-pane"
       >
-        <Button onClick={handleExport} icon={ExportIcon}>Export</Button>
-        <Button onClick={handleImport} icon={ImportIcon}>Import</Button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          <Button onClick={handleExport} icon={ExportIcon}>Export</Button>
+          <Button onClick={handleImport} icon={ImportIcon}>Import</Button>
+        </div>
+        <Tips />
       </div>
       <MindMapCanvas 
         nodes={nodes}
