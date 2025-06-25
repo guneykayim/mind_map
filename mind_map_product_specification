@@ -60,7 +60,7 @@ PO task list (must have):
 4. [ ] add the export and import functionality
     4.1 [+] add a serialise function, which should simply convert everything in the canvas (nodes, their text, their position, their children etc.)
     4.2 [+] add a de-serialise function, which should take a serialised data and convert it back to canvas objects (nodes, their text, their position, their children etc.)
-    4.3 [ ] write a test which does serialisation and deserialisation and assert that it works correctly
+    4.3 [+] write a test which does serialisation and deserialisation and assert that it works correctly
     4.4 [+] implement the export functionality, which simply calls the serialisation function and then writes it as an xml file
     4.5 [+] implement the import functionality, which should take an imported file, loads it, calls the deserialisation function and render the screen with it
     4.6 [+] in the future we will add more data for nodes such as bg color, border color, text color etc, so the serialisation and deserialisation functions should have a proper structure for backwards compatibility support in the future.
