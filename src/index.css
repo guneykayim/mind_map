@@ -34,20 +34,6 @@ body, html {
   box-sizing: border-box;
 }
 
-.save-button, .load-button {
-  padding: var(--spacing-sm);
-  border: none;
-  border-radius: var(--border-radius-sm);
-  background-color: var(--color-primary);
-  color: white;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.save-button:hover, .load-button:hover {
-  background-color: var(--color-primary-hover);
-}
-
 /* Mind Map Area */
 .mind-map {
   flex: 1;

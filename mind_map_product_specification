@@ -57,7 +57,7 @@ PO task list (must have):
     - While drawing the rectangle, it should show the rectangle with dashed lines on the canvas
 3.2 [+] Allow multiple selected nodes to be deleted together
 3.3 [+] Allow multiple selected nodes to be dragged together
-4. [ ] add the export and import functionality
+4. [+] add the export and import functionality
     4.1 [+] add a serialise function, which should simply convert everything in the canvas (nodes, their text, their position, their children etc.)
     4.2 [+] add a de-serialise function, which should take a serialised data and convert it back to canvas objects (nodes, their text, their position, their children etc.)
     4.3 [+] write a test which does serialisation and deserialisation and assert that it works correctly
