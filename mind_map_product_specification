@@ -41,44 +41,21 @@ left pane will have
 - load button
 
 PO task list (must have):
-1. [+] if I try to refresh the screen, warn the user about unsaved changes
-2. [+] Child nodes shouldn't be able to add a node in it's parent direction
-       let's say from root node I added right child, from that right child I should only be able to add right childs. Same goes from left child. a left child should only be able to add left childs.
-3.0 [+] Update the code such that we don't store a selected node, but we store a list of selected nodes. 
-    - When 1 node is selected, it should be possible to another node to selection by holding the shift key and selecting the node. 
-    - All nodes can be selected by holding the shift key and clicking on them.
-    - Clicking on a selected node should remove it from the selection list.
-    - Clicking on the canvas when shift key is not pressed should remove all selected nodes.
-3.1 [+] Allow multiple node selection simply by drawing a rectangle on the canvas with mouse
-    - When user clicks on the canvas, it should start drawing a rectangle
-    - When user releases the mouse, it should stop drawing the rectangle
-    - All nodes that are inside the rectangle should be selected
-    - All nodes that are outside the rectangle should be unselected
-    - While drawing the rectangle, it should show the rectangle with dashed lines on the canvas
-3.2 [+] Allow multiple selected nodes to be deleted together
-3.3 [+] Allow multiple selected nodes to be dragged together
-4. [+] add the export and import functionality
-    4.1 [+] add a serialise function, which should simply convert everything in the canvas (nodes, their text, their position, their children etc.)
-    4.2 [+] add a de-serialise function, which should take a serialised data and convert it back to canvas objects (nodes, their text, their position, their children etc.)
-    4.3 [+] write a test which does serialisation and deserialisation and assert that it works correctly
-    4.4 [+] implement the export functionality, which simply calls the serialisation function and then writes it as an xml file
-    4.5 [+] implement the import functionality, which should take an imported file, loads it, calls the deserialisation function and render the screen with it
-    4.6 [+] in the future we will add more data for nodes such as bg color, border color, text color etc, so the serialisation and deserialisation functions should have a proper structure for backwards compatibility support in the future.
-5. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
+1. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
 
 P1 task list (should have):
-1. [+] add clear the canvas button
-2. [ ] add auto save functionality
-3. [ ] add the undo and redo functionality
-
-P2 task list (good to have):
-1. [ ] Improve node text editing experience
-    instead of updating the width of the node only, update it's position if necessary (left child and root node)
+1. [ ] export button shouldn't directly save output, it should ask for file name, etc.
 2. [ ] Add auto layout button, when pressed it should layout the nodes in a way that they don't overlap and they are spread out and they should have equal spacing between them
+3. [ ] Improve node text editing experience
+    instead of updating the width of the node only, update it's position if necessary (left child and root node)
+
+P2 task list (good to have but stretch):
+1. [ ] add auto save functionality
+2. [ ] add the undo and redo functionality
 
 
 
 known bugs/issues:
-1. [ ] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
+1. [ ] seems like there is some initial canvas size and even though the canvas is infinitely scrollable and I can add nodes everywhere, if I'm adding a node that is outside of the initial canvas, arrows of the nodes are not displayed.git
 2. [ ] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
 3. [ ] node can draggable under the left pane
