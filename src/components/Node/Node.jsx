@@ -5,7 +5,7 @@ import styles from './Node.module.css';
 // Move these outside the component to prevent recreation
 const noop = () => {};
 
-function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionChange, onAddNode, /*leftPanelWidth,*/ setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop, zoomLevel = 1, canvasContentRef, side }) {
+function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, updateNodePosition, onAddNode, /*leftPanelWidth,*/ setNodeRef, onNodeIsDragging = noop, isSelected = false, onSelect = noop, zoomLevel = 1, canvasContentRef, side }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [editingWidth, setEditingWidth] = useState(null);
@@ -98,10 +98,10 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
     }
 
     // Call onPositionChange with the final ABSOLUTE canvas position
-    if (typeof onPositionChange === 'function' && typeof dragState.current.lastX === 'number') {
-      onPositionChange(dragState.current.lastX, dragState.current.lastY);
+    if (typeof updateNodePosition === 'function' && typeof dragState.current.lastX === 'number') {
+      updateNodePosition(id, dragState.current.lastX, dragState.current.lastY);
     }
-  }, [isEditing, onNodeIsDragging]);
+  }, [isEditing, onNodeIsDragging, id, updateNodePosition]);
 
   const handleMouseDown = useCallback((e) => {
     if (isEditing) return;
@@ -173,11 +173,11 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, onPositionCha
       const logicalCenterX = (unscaledContainerWidth / 2) - (nodeWidth / 2);
       const logicalCenterY = (unscaledContainerHeight / 2) - (nodeHeight / 2);
       
-      if (typeof onPositionChange === 'function') {
-        onPositionChange(logicalCenterX, logicalCenterY);
+      if (typeof updateNodePosition === 'function') {
+        updateNodePosition(id, logicalCenterX, logicalCenterY, true);
       }
     }
-  }, [id, onPositionChange, setNodeRef, zoomLevel, canvasContentRef]); // Removed leftPanelWidth, added zoomLevel, canvasContentRef
+  }, [id, updateNodePosition, setNodeRef, zoomLevel, canvasContentRef]); // Removed leftPanelWidth, added zoomLevel, canvasContentRef
 
   const handleAddNodeClick = (direction) => {
     if (onAddNode && id && nodeRef.current) {

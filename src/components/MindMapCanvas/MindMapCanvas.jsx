@@ -183,7 +183,7 @@ const MindMapCanvas = ({
             position={{ x: node.x || 0, y: node.y || 0 }}
             side={node.side}
             onTextChange={newText => handleTextChange(node.id, newText)}
-            onPositionChange={(absoluteX, absoluteY) => updateNodePosition(node.id, absoluteX, absoluteY)}
+            updateNodePosition={updateNodePosition}
             onAddNode={addNode}
             setNodeRef={el => setNodeRef(node.id, el)}
             onNodeIsDragging={onNodeIsDragging}

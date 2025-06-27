@@ -67,7 +67,7 @@ PO task list (must have):
 5. [ ] Improve node slot finding algorithm such that when child nodes add new child nodes, those shouldn't overlap
 
 P1 task list (should have):
-1. [ ] add clear the canvas button
+1. [+] add clear the canvas button
 2. [ ] add auto save functionality
 3. [ ] add the undo and redo functionality
 
@@ -81,3 +81,4 @@ P2 task list (good to have):
 known bugs/issues:
 1. [ ] when a node is added in zoomed out mode to a place that is outside the original canvas size, it's arrows are not drawn at all
 2. [ ] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
+3. [ ] node can draggable under the left pane

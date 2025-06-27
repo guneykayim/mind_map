@@ -18,6 +18,9 @@ const Tips = () => {
         <li className={styles.tipItem}>
           <strong>Zoom:</strong> <Key>Ctrl</Key> + Scroll
         </li>
+        <li className={styles.tipItem}>
+          <strong>Undo/Redo:</strong> <Key>Ctrl</Key> + <Key>Z</Key> / <Key>Y</Key>
+        </li>
       </ul>
     </div>
   );

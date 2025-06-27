@@ -1,7 +1,17 @@
 import React from 'react';
 import styles from './CanvasControls.module.css';
 
-const CanvasControls = ({ zoomLevel, onZoom, minZoom, maxZoom, onResetPan }) => {
+const CanvasControls = ({
+  zoomLevel,
+  onZoom,
+  minZoom,
+  maxZoom,
+  onResetPan,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+}) => {
   const handleZoomIn = () => {
     onZoom(zoomLevel + 0.1);
   };
@@ -24,6 +34,8 @@ const CanvasControls = ({ zoomLevel, onZoom, minZoom, maxZoom, onResetPan }) => 
 
   return (
     <div className={styles['zoom-controls']}>
+      <button onClick={onUndo} title="Undo" disabled={!canUndo}>↩️</button>
+      <button onClick={onRedo} title="Redo" disabled={!canRedo}>↪️</button>
       <button onClick={handleResetPan} title="Reset View">📍</button>
       <button onClick={handleZoomOut}>-</button>
       <input

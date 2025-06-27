@@ -9,6 +9,7 @@ import {
 import { useNodeSelection } from './useNodeSelection';
 import { useNodeDrag } from './useNodeDrag';
 import { useMindMapEventListeners } from './useMindMapEventListeners';
+import { useHistory } from './useHistory';
 
 // Generate a simple unique ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -72,7 +73,14 @@ const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, ge
 };
 
 export const useMindMapNodes = (showConfirmation) => {
-  const [nodes, setNodes] = useState(initialNodes);
+  const { 
+    state: nodes,
+    setState: setNodes, 
+    undo, 
+    redo,
+    canUndo,
+    canRedo 
+  } = useHistory(initialNodes);
   const {
     selectedNodeIds,
     setSelectedNodeIds,
@@ -93,7 +101,7 @@ export const useMindMapNodes = (showConfirmation) => {
     setNodes(prevNodes => addNodeRecursive(prevNodes, parentId, direction, dims, newNode));
   }, [setNodes]);
 
-  const updateNodePosition = useCallback((nodeId, newAbsoluteX, newAbsoluteY) => {
+  const updateNodePosition = useCallback((nodeId, newAbsoluteX, newAbsoluteY, overwriteHistory = false) => {
     setHasUnsavedChanges(true);
     setNodes(prevNodes => {
       const draggedNode = findNodeById(prevNodes, nodeId);
@@ -106,7 +114,7 @@ export const useMindMapNodes = (showConfirmation) => {
       const nodesToMoveSet = new Set(nodesToMove);
 
       return updatePositionRecursive(prevNodes, nodesToMoveSet, dx, dy);
-    });
+    }, overwriteHistory);
   }, [setNodes, selectedNodeIds]);
 
   const handleTextChange = useCallback((nodeId, newText) => {
@@ -212,5 +220,9 @@ export const useMindMapNodes = (showConfirmation) => {
     serialize,
     deserialize,
     clearCanvas,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 };

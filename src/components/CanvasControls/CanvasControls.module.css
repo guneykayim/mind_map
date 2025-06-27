@@ -40,6 +40,14 @@
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.zoom-controls button:disabled {
+  background-color: #e9ecef; /* Lighter grey for disabled state */
+  color: #adb5bd; /* Muted text color */
+  cursor: not-allowed; /* Not-allowed cursor */
+  border-color: #ced4da;
+  box-shadow: none; /* No shadow for disabled buttons */
+}
+
 .zoom-controls .reset-zoom-button {
   font-size: 20px; /* Slightly larger for icon visibility */
   padding: 6px 10px; /* Adjust padding for icon button */
