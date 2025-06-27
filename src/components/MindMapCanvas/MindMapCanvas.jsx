@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Node from '../Node/Node';
 import Arrow from '../Arrow/Arrow';
 // import styles from './MindMapCanvas.module.css'; // Uncomment if you use specific styles
@@ -44,7 +44,7 @@ const MindMapCanvas = ({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top 
       };
-      const delta = e.deltaY * -0.005;
+      const delta = e.deltaY * -0.001;
       onZoom(zoomLevel + delta, focalPoint);
     } else {
       setPanOffset(prev => ({
@@ -53,6 +53,18 @@ const MindMapCanvas = ({
       }));
     }
   }, [zoomLevel, onZoom, setPanOffset, canvasContainerRef]);
+
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, [canvasContainerRef, handleWheel]);
 
   const handleMouseDown = useCallback((e) => {
     const isBackgroundClick = e.target === e.currentTarget || e.target.classList.contains('mind-map-content-container');
@@ -190,7 +202,6 @@ const MindMapCanvas = ({
     <div
       ref={canvasContainerRef} // Attach ref to the container
       className="mind-map"
-      onWheel={handleWheel}
       onMouseDown={handleMouseDown}
     >
       {selectionRect && (

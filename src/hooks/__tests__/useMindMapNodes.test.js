@@ -127,4 +127,29 @@ describe('useMindMapNodes serialization and deserialization', () => {
         // Also check a specific property for good measure
         expect(result.current.nodes[0].children.length).toBe(2);
     });
+});
+
+describe('useMindMapNodes manipulation', () => {
+    it('should clear the canvas, leaving only the root node', () => {
+        const { result } = renderHook(() => useMindMapNodes());
+
+        // 1. Add some nodes to make the state non-initial
+        act(() => {
+            result.current.addNode('root', 'right');
+            result.current.addNode('root', 'left');
+        });
+
+        // Verify nodes were added
+        expect(result.current.nodes[0].children.length).toBe(2);
+
+        // 2. Call clearCanvas
+        act(() => {
+            result.current.clearCanvas();
+        });
+
+        // 3. Assert that only the root node remains and it has no children
+        expect(result.current.nodes.length).toBe(1);
+        expect(result.current.nodes[0].id).toBe('root');
+        expect(result.current.nodes[0].children.length).toBe(0);
+    });
 }); 

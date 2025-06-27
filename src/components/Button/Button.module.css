@@ -16,4 +16,44 @@
 
 .button:hover {
   background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.primary {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.secondary {
+  background-color: transparent;
+  color: var(--color-text);
+  border-color: #ccc;
+}
+
+.secondary:hover {
+  background-color: #f0f0f0;
+  border-color: #bbb;
+}
+
+.danger {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
 } 

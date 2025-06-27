@@ -71,7 +71,7 @@ const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, ge
   }
 };
 
-export const useMindMapNodes = () => {
+export const useMindMapNodes = (showConfirmation) => {
   const [nodes, setNodes] = useState(initialNodes);
   const {
     selectedNodeIds,
@@ -142,29 +142,19 @@ export const useMindMapNodes = () => {
     setNodes(prevNodes => deleteMultipleRecursive(prevNodes, new Set(nodeIds)));
   }, [setNodes]);
 
+  const clearCanvas = useCallback(() => {
+    setNodes(initialNodes);
+    setSelectedNodeIds([]);
+    setHasUnsavedChanges(true);
+  }, [setNodes, setSelectedNodeIds, setHasUnsavedChanges]);
+
   const deleteSelectedNodes = useCallback(() => {
     if (selectedNodeIds.length === 0) return;
-    setHasUnsavedChanges(true);
-    setNodes(prevNodes => {
-      const recursivelyDeleteMultiple = (currentNodes, targetIds) => {
-        if (!currentNodes || currentNodes.length === 0) {
-          return [];
-        }
-        const targetIdsSet = new Set(targetIds);
-        
-        return currentNodes
-          .filter(node => !targetIdsSet.has(node.id)) // Remove nodes that are in the delete list
-          .map(node => ({
-            ...node,
-            children: node.children ? recursivelyDeleteMultiple(node.children, targetIds) : [] // Process children
-          }));
-      };
-      return recursivelyDeleteMultiple(prevNodes, new Set(selectedNodeIds));
-    });
+    deleteMultipleNodes(selectedNodeIds);
     setSelectedNodeIds([]); // Clear selection after deletion
-  }, [selectedNodeIds, setSelectedNodeIds]);
+  }, [selectedNodeIds, setSelectedNodeIds, deleteMultipleNodes]);
 
-  useMindMapEventListeners(nodes, selectedNodeIds, deleteMultipleNodes);
+  useMindMapEventListeners(nodes, selectedNodeIds, deleteMultipleNodes, showConfirmation);
 
   // Warn user about unsaved changes
   useEffect(() => {
@@ -221,5 +211,6 @@ export const useMindMapNodes = () => {
     deleteMultipleNodes,
     serialize,
     deserialize,
+    clearCanvas,
   };
 };

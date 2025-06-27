@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { findNodeById } from '../utils/nodeTreeUtils';
 
-export const useMindMapEventListeners = (nodes, selectedNodeIds, deleteMultipleNodes) => {
+export const useMindMapEventListeners = (nodes, selectedNodeIds, deleteMultipleNodes, showConfirmation) => {
     
     const getNodeTextById = useCallback((nodeId) => {
         const node = findNodeById(nodes, nodeId);
@@ -41,9 +41,11 @@ export const useMindMapEventListeners = (nodes, selectedNodeIds, deleteMultipleN
                     confirmationMessage = `Are you sure you want to delete ${nodesToDelete.length} nodes (${nodeTexts.join(', ')}${moreText}) and all their children?`;
                 }
 
-                if (window.confirm(confirmationMessage)) {
-                    deleteMultipleNodes(nodesToDelete);
-                }
+                showConfirmation(
+                    'Delete Nodes',
+                    confirmationMessage,
+                    () => deleteMultipleNodes(nodesToDelete)
+                );
             }
         };
 
@@ -52,5 +54,5 @@ export const useMindMapEventListeners = (nodes, selectedNodeIds, deleteMultipleN
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [selectedNodeIds, deleteMultipleNodes, getNodeTextById]);
+    }, [selectedNodeIds, deleteMultipleNodes, getNodeTextById, showConfirmation]);
 }; 

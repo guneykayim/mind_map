@@ -9,11 +9,27 @@ import MindMapCanvas from './components/MindMapCanvas/MindMapCanvas.jsx';
 import CanvasControls from './components/CanvasControls';
 import Button from './components/Button';
 import Tips from './components/Tips';
+import ConfirmationDialog from './components/ConfirmationDialog';
 
 function App() {
   const canvasContainerRef = useRef(null); // Ref for the canvas container
   const canvasContentRef = useRef(null);
   const [isJustLoaded, setIsJustLoaded] = useState(false);
+  const [confirmation, setConfirmation] = useState({ isOpen: false });
+
+  const showConfirmation = (title, message, onConfirm) => {
+    setConfirmation({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
+  const closeConfirmation = () => {
+    setConfirmation({ isOpen: false });
+  };
+
   const { 
     nodes, 
     addNode, 
@@ -30,7 +46,9 @@ function App() {
     handleNodeDrag,
     serialize,
     deserialize,
-  } = useMindMapNodes();
+    totalNodeCount,
+    clearCanvas,
+  } = useMindMapNodes(showConfirmation);
 
   const { handleExport, handleImport } = useFileIO({
     serialize,
@@ -40,6 +58,14 @@ function App() {
     },
     hasUnsavedChanges,
   });
+
+  const handleClearCanvas = () => {
+    showConfirmation(
+      'Clear Canvas',
+      'Are you sure you want to clear the canvas? This action cannot be undone.',
+      clearCanvas
+    );
+  };
 
   const nodeRefs = useRef({});
   const setNodeRef = useCallback((id, el) => {
@@ -95,6 +121,7 @@ function App() {
 
   const ExportIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
   const ImportIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+  const ClearIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>;
 
   return (
     <div className="app-container">
@@ -103,8 +130,9 @@ function App() {
         className="left-pane"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-          <Button onClick={handleExport} icon={ExportIcon}>Export</Button>
-          <Button onClick={handleImport} icon={ImportIcon}>Import</Button>
+          <Button onClick={handleExport} icon={ExportIcon} variant="primary">Export</Button>
+          <Button onClick={handleImport} icon={ImportIcon} variant="primary">Import</Button>
+          <Button onClick={handleClearCanvas} icon={ClearIcon} variant="danger">Clear</Button>
         </div>
         <Tips />
       </div>
@@ -135,6 +163,13 @@ function App() {
         minZoom={MIN_ZOOM}
         maxZoom={MAX_ZOOM}
         onResetPan={resetView}
+      />
+      <ConfirmationDialog
+        isOpen={confirmation.isOpen}
+        onClose={closeConfirmation}
+        onConfirm={confirmation.onConfirm}
+        title={confirmation.title}
+        message={confirmation.message}
       />
     </div>
   );
