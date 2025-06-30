@@ -5,3 +5,14 @@
   to be specific to this component, you would define them here and use them in MindMapCanvas.jsx
   e.g., className={styles.mindMap} and className={styles.nodeLayer}
 */
+
+.arrowContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: visible;
+}

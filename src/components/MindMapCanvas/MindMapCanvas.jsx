@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Node from '../Node/Node';
 import Arrow from '../Arrow/Arrow';
-// import styles from './MindMapCanvas.module.css'; // Uncomment if you use specific styles
+import styles from './MindMapCanvas.module.css';
 
 const MindMapCanvas = ({
   zoomLevel,
@@ -216,9 +216,11 @@ const MindMapCanvas = ({
         />
       )}
       <div ref={canvasContentRef} style={canvasStyle} className="mind-map-content-container">
-        {arrowData.map(arrow => (
-          <Arrow key={arrow.id} {...arrow} />
-        ))}
+        <svg className={styles.arrowContainer}>
+          {arrowData.map(arrow => (
+            <Arrow key={arrow.id} {...arrow} />
+          ))}
+        </svg>
         <div className="node-layer">
           {renderNodeElements()}
         </div>

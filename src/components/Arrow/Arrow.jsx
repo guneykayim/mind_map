@@ -23,7 +23,7 @@ const Arrow = ({ from, to }) => {
   const y2 = arrowBaseY - headLength * Math.sin(angle + Math.PI / 6);
 
   return (
-    <svg className={styles.arrowSvg}>
+    <g>
       <line
         x1={from.x}
         y1={from.y}
@@ -45,7 +45,7 @@ const Arrow = ({ from, to }) => {
         y2={y2}
         className={styles.arrowLine}
       />
-    </svg>
+    </g>
   );
 };
 
