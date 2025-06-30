@@ -154,8 +154,8 @@ function App() {
         className="left-pane"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-          <Button onClick={handleExport} icon={ExportIcon} variant="primary">Export</Button>
           <Button onClick={handleImport} icon={ImportIcon} variant="primary">Import</Button>
+          <Button onClick={handleExport} icon={ExportIcon} variant="primary">Export</Button>
           <Button onClick={handleClearCanvas} icon={ClearIcon} variant="danger">Clear</Button>
         </div>
         <Tips />
