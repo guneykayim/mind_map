@@ -2,31 +2,36 @@
 
 A web-based mind mapping tool built with React and modern web technologies. This application allows users to create, edit, and organize ideas in a visual mind map format.
 
-## 🚀 Features
+## ✨ Features
 
-### ✅ Implemented
-- Interactive node manipulation
-- Editable node text with double-click
-- Draggable nodes with smooth transitions
-- Hover-triggered + buttons for adding child nodes
-- Add new nodes when + buttons are clicked
-- Clean and modern UI with smooth animations
-- Add arrow connections between nodes
-- Maintain arrow connections when nodes are dragged
-- Allow nodes to be deleted
-- Make canvas zoomable
+- **Infinite Canvas**: Zoom and pan around an infinite canvas to organize your ideas.
+- **Node Management**: Add, edit, and delete nodes with ease.
+- **Text Editing**: Edit node text with a simple double-click.
+- **Drag and Drop**: Intuitively drag and move single or multiple nodes.
+- **Multi-Node Selection**: Select multiple nodes using a selection rectangle.
+- **Smart Connections**: Arrows automatically connect parent and child nodes and update as you move them.
+- **Import/Export**: Save your mind map to a file or load a previously saved one.
+- **Undo/Redo**: Correct mistakes with multi-level undo and redo.
+- **Keyboard Shortcuts**: Efficiently manage your mind map with keyboard shortcuts.
 
-### 🚧 In Progress
-- [ ] Allow multiple nodes to be selected and dragged together
-- [ ] Make canvas scrollable
-- [ ] Child nodes cannot add a node in it's parent direction
-- [ ] Export and import mind map
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut             | Action                       |
+| -------------------- | ---------------------------- |
+| `DoubleClick` on node| Edit node text               |
+| `Shift` + `Click`    | Add node to selection        |
+| `Shift` + `Drag`     | Pan the canvas               |
+| `Ctrl` + `Z`         | Undo last action             |
+| `Ctrl` + `Y`         | Redo last action             |
+| `Scroll Wheel`       | Pan vertically               |
+| `Ctrl` + `Scroll`    | Zoom in/out                  |
+| `Delete` / `Backspace` | Delete selected node(s)    |
 
 ## 🛠 Tech Stack
 
 - ⚛️ React 18 with Hooks
 - 🎨 CSS Modules for scoped styling
-- 🖱 Custom drag-and-drop implementation
+- 🖱 Custom hooks for state management and interactions
 - 🏗 Vite for fast development and builds
 - 🎨 CSS Variables for theming
 
@@ -39,22 +44,21 @@ A web-based mind mapping tool built with React and modern web technologies. This
 ### Installation
 
 1. Clone the repository:
-```bash
-git clone <repository-url>
-cd mind_map
-```
+    ```bash
+    git clone <repository-url>
+    cd mind_map
+    ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-3. Start the development server:
-```bash
-npm run dev
-```
-
-4. Open your browser and navigate to `http://localhost:5173`
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+    The application will be available at `http://localhost:5173`.
 
 ### Building for Production
 
@@ -68,33 +72,20 @@ npm run build
 ```
 src/
 ├── App.jsx             # Main application component
-├── components/         # React components
-│   ├── Arrow/          # Arrow component and related files
-│   ├── MindMapCanvas/  # Canvas for rendering nodes and arrows
-│   ├── Node/           # Node component and related files
-│   └── NodeText/       # Node text editing component
-├── hooks/              # Custom React hooks
-│   ├── useMindMapArrows.js # Hook for arrow logic
-│   └── useMindMapNodes.js  # Hook for node logic
-├── index.css           # Main CSS file for the entry point
-├── index.jsx           # Main entry point for the React application
-└── styles/             # Global styles and variables
-    └── variables.css   # CSS variables
-```
-
-## 🧪 Testing
-
-To run tests:
-```bash
-npm test
+├── components/         # Reusable React components
+├── hooks/              # Custom React hooks for logic and state
+├── styles/             # Global styles and variables
+├── utils/              # Utility functions
+├── index.css           # Global stylesheet
+└── index.jsx           # Application entry point
 ```
 
 ## 📝 Notes
 
-- The application is currently in active development
-- UI/UX improvements are ongoing
-- Performance optimizations are planned for larger mind maps
-- This project is being developed entirely through AI-assisted coding (pair programming with AI). So far, models like GPT-4.1, Gemini 2.5 Pro, and SWE-1 have contributed to the codebase.
+- The application is currently in active development.
+- UI/UX improvements are ongoing.
+- Performance optimizations are planned for larger mind maps.
+- This project is being developed entirely through vibe coding. So far, models like GPT-4, Gemini 2.5 Pro and Windsurf SWE-1 have contributed to the codebase.
 
 ## 📄 License
 
