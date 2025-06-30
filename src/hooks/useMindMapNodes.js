@@ -4,7 +4,11 @@ import {
     addNodeRecursive,
     updatePositionRecursive,
     updateTextRecursive,
-    deleteMultipleRecursive
+    deleteMultipleRecursive,
+    flattenNodes,
+    findPathToNode,
+    getDescendantsAndSelf,
+    checkCollision
 } from '../utils/nodeTreeUtils';
 import { useNodeSelection } from './useNodeSelection';
 import { useNodeDrag } from './useNodeDrag';
@@ -24,53 +28,6 @@ const initialNodes = [
     children: []
   }
 ];
-
-// Helper function to find the optimal slot for a new node among siblings
-const findOptimalSlotPosition = (relevantSiblings, newNodeSecondaryDimension, getSiblingPos, getSiblingDimension, NODE_GAP) => {
-  if (relevantSiblings.length === 0) {
-    return 0; // No siblings on this side, place at the center of the axis
-  }
-
-  let potentialSlots = [0]; // Start with parent's center on this axis
-  relevantSiblings.forEach(sib => {
-    const sibPos = getSiblingPos(sib);
-    const sibDim = getSiblingDimension(sib);
-    potentialSlots.push(sibPos + sibDim + NODE_GAP); // Slot after sibling
-    potentialSlots.push(sibPos - newNodeSecondaryDimension - NODE_GAP); // Slot before sibling
-  });
-  potentialSlots = [...new Set(potentialSlots)]; // Unique slots
-
-  const validSlots = potentialSlots.filter(slotStart => {
-    const newNodeStart = slotStart;
-    const newNodeEnd = slotStart + newNodeSecondaryDimension;
-    let isCollision = false;
-    for (const sib of relevantSiblings) {
-      const sibStart = getSiblingPos(sib);
-      const sibEnd = sibStart + getSiblingDimension(sib);
-      // Check for overlap on the secondary axis
-      if (newNodeStart < sibEnd && newNodeEnd > sibStart) {
-        isCollision = true;
-        break;
-      }
-    }
-    return !isCollision;
-  });
-
-  if (validSlots.length > 0) {
-    validSlots.sort((a, b) => {
-      const absA = Math.abs(a);
-      const absB = Math.abs(b);
-      if (absA !== absB) return absA - absB; // Closest to 0
-      return a >= 0 ? -1 : 1; // Prefer non-negative if abs values are equal
-    });
-    return validSlots[0];
-  } else {
-    // Fallback: place after the last relevant sibling on this axis
-    const sortedByPos = [...relevantSiblings].sort((a, b) => getSiblingPos(a) - getSiblingPos(b));
-    const lastRelevant = sortedByPos[sortedByPos.length - 1];
-    return getSiblingPos(lastRelevant) + getSiblingDimension(lastRelevant) + NODE_GAP;
-  }
-};
 
 export const useMindMapNodes = (showConfirmation) => {
   const { 
@@ -92,13 +49,103 @@ export const useMindMapNodes = (showConfirmation) => {
   const { draggingNodeInfo, handleNodeDrag } = useNodeDrag(nodes, selectedNodeIds);
 
   const addNode = useCallback((parentId, direction, dims = {}) => {
-    const newNode = {
+    const newNodeInfo = {
       id: generateId(),
       text: 'New Node',
       children: [],
+      width: 120,
+      height: 60
     };
     setHasUnsavedChanges(true);
-    setNodes(prevNodes => addNodeRecursive(prevNodes, parentId, direction, dims, newNode));
+    setNodes(prevNodes => {
+      const MAX_ITERATIONS = 10;
+      let iterations = 0;
+      let newNodes = JSON.parse(JSON.stringify(prevNodes));
+      let collisionFound;
+
+      // Initial placement of the new node
+      newNodes = addNodeRecursive(newNodes, parentId, direction, dims, newNodeInfo);
+
+      do {
+        collisionFound = false;
+        const allNodes = flattenNodes(newNodes);
+        const newNode = allNodes.find(n => n.id === newNodeInfo.id);
+
+        if (!newNode) {
+          console.error("Newly added node not found. Aborting collision check.");
+          break; 
+        }
+
+        for (const existingNode of allNodes) {
+          if (existingNode.id === newNode.id || existingNode.id === parentId) continue;
+
+          if (checkCollision(newNode, existingNode)) {
+            collisionFound = true;
+            
+            const parentPath = findPathToNode(newNodes, parentId);
+            const existingPath = findPathToNode(newNodes, existingNode.id);
+
+            if (!parentPath || !existingPath) continue;
+            
+            let commonAncestor, parentSubRoot, conflictSubRoot;
+            for (let i = 0; i < Math.min(parentPath.length, existingPath.length); i++) {
+              if (parentPath[i].id !== existingPath[i].id) break;
+              commonAncestor = parentPath[i];
+              parentSubRoot = parentPath[i + 1];
+              conflictSubRoot = existingPath[i + 1];
+            }
+
+            if (!commonAncestor || !conflictSubRoot || !parentSubRoot) continue;
+            if (parentSubRoot.id === conflictSubRoot.id) continue;
+
+            // All children of the common ancestor that are on the same side as the new node.
+            const side = parentSubRoot.side;
+            const childrenOnSide = (commonAncestor.children || []).filter(c => c.side === side);
+            
+            const moveConflictUp = conflictSubRoot.y < parentSubRoot.y;
+            
+            let nodesToShiftRoots;
+            if (moveConflictUp) {
+              // The conflicting branch is above the new node's branch, so it and everything above it gets moved up.
+              nodesToShiftRoots = childrenOnSide.filter(child => child.y <= conflictSubRoot.y);
+            } else {
+              // The conflicting branch is below, so it and everything below it gets moved down.
+              nodesToShiftRoots = childrenOnSide.filter(child => child.y >= conflictSubRoot.y);
+            }
+            
+            // The branch for the new node should not be moved.
+            const finalNodesToShift = nodesToShiftRoots.filter(n => n.id !== parentSubRoot.id);
+            
+            const nodesToMoveSet = new Set();
+            for (const root of finalNodesToShift) {
+              const descendants = getDescendantsAndSelf(root);
+              for (const descendant of descendants) {
+                nodesToMoveSet.add(descendant.id);
+              }
+            }
+            
+            const dy = (newNode.height || 60) + 20;
+            const shiftY = moveConflictUp ? -dy : dy;
+
+            if (nodesToMoveSet.size > 0) {
+              newNodes = updatePositionRecursive(newNodes, nodesToMoveSet, 0, shiftY);
+            }
+
+            newNodes = deleteMultipleRecursive(newNodes, new Set([newNode.id]));
+            newNodes = addNodeRecursive(newNodes, parentId, direction, dims, newNodeInfo);
+            
+            break; 
+          }
+        }
+        iterations++;
+      } while (collisionFound && iterations < MAX_ITERATIONS);
+
+      if (iterations >= MAX_ITERATIONS) {
+        console.warn("Max iterations reached in collision avoidance. There might be an unresolvable overlap.");
+      }
+
+      return newNodes;
+    });
   }, [setNodes]);
 
   const updateNodePosition = useCallback((nodeId, newAbsoluteX, newAbsoluteY, overwriteHistory = false) => {

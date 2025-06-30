@@ -148,4 +148,52 @@ export const deleteMultipleRecursive = (nodes, targetIdsSet) => {
         ...node,
         children: node.children ? deleteMultipleRecursive(node.children, targetIdsSet) : []
       }));
+};
+
+export const flattenNodes = (nodes) => {
+  let flatList = [];
+  const queue = [...(nodes || [])];
+  while (queue.length > 0) {
+    const node = queue.shift();
+    flatList.push(node);
+    if (node.children) {
+      queue.push(...node.children);
+    }
+  }
+  return flatList;
+};
+
+export const findPathToNode = (nodes, nodeId) => {
+  for (const node of nodes) {
+    if (node.id === nodeId) return [node];
+    if (node.children) {
+      const path = findPathToNode(node.children, nodeId);
+      if (path && path.length > 0) return [node, ...path];
+    }
+  }
+  return null;
+};
+
+export const getDescendantsAndSelf = (node) => {
+  let descendants = [node];
+  if (node.children) {
+    for (const child of node.children) {
+      descendants.push(...getDescendantsAndSelf(child));
+    }
+  }
+  return descendants;
+};
+
+export const checkCollision = (nodeA, nodeB) => {
+  const nodeAWidth = nodeA.width || 120;
+  const nodeAHeight = nodeA.height || 60;
+  const nodeBWidth = nodeB.width || 120;
+  const nodeBHeight = nodeB.height || 60;
+
+  return (
+    nodeA.x < nodeB.x + nodeBWidth &&
+    nodeA.x + nodeAWidth > nodeB.x &&
+    nodeA.y < nodeB.y + nodeBHeight &&
+    nodeA.y + nodeAHeight > nodeB.y
+  );
 }; 
