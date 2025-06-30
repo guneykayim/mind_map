@@ -51,11 +51,8 @@ P1 task list (should have):
 
 P2 task list (good to have but stretch):
 1. [ ] add auto save functionality
-2. [ ] add the undo and redo functionality
 
 
 
 known bugs/issues:
 1. [ ] seems like there is some initial canvas size and even though the canvas is infinitely scrollable and I can add nodes everywhere, if I'm adding a node that is outside of the initial canvas, arrows of the nodes are not displayed.git
-2. [ ] sometimes when a child node is added, it causes parent node to jump to another place, mostly top left, there isn't an exact repro though, not sure why it happens
-3. [ ] node can draggable under the left pane

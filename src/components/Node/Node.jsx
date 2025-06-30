@@ -17,12 +17,15 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, updateNodePos
     offsetY: 0,
     node: null,
     lastX: 0, // Store last calculated X
-    lastY: 0  // Store last calculated Y
+    lastY: 0,  // Store last calculated Y
+    moved: false,
+    startX: 0,
+    startY: 0
   });
 
   const handleClick = useCallback((event) => {
     event.stopPropagation(); // Stop propagation
-    if (!dragState.current.isDragging && !isEditing) {
+    if (!dragState.current.moved && !isEditing) {
       onSelect(event, id);
     }
   }, [isEditing, onSelect, id]);
@@ -39,15 +42,26 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, updateNodePos
   const handleMouseMove = useCallback((e) => {
     if (!dragState.current.isDragging) return;
     
+    if (!dragState.current.moved) {
+      const dx = Math.abs(e.clientX - dragState.current.startX);
+      const dy = Math.abs(e.clientY - dragState.current.startY);
+      if (dx > 4 || dy > 4) {
+        dragState.current.moved = true;
+      } else {
+        return;
+      }
+    }
+
     // Ensure hover state is false during drag
     setIsHovered(false);
     
-    if (!dragState.current.isDragging || !canvasContentRef.current) return;
+    if (!canvasContentRef.current) return;
 
     const { offsetX, offsetY } = dragState.current;
     const node = nodeRef.current;
     if (!node) return;
 
+    const rect = node.getBoundingClientRect();
     const containerRect = canvasContentRef.current.getBoundingClientRect();
 
     // Calculate node's new top-left in viewport coordinates
@@ -98,7 +112,7 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, updateNodePos
     }
 
     // Call onPositionChange with the final ABSOLUTE canvas position
-    if (typeof updateNodePosition === 'function' && typeof dragState.current.lastX === 'number') {
+    if (typeof updateNodePosition === 'function' && dragState.current.moved) {
       updateNodePosition(id, dragState.current.lastX, dragState.current.lastY);
     }
   }, [isEditing, onNodeIsDragging, id, updateNodePosition]);
@@ -115,10 +129,14 @@ function Node({ id, text, position = { x: 0, y: 0 }, onTextChange, updateNodePos
     const offsetY = e.clientY - rect.top;
     
     dragState.current = {
+      ...dragState.current,
       isDragging: true,
       offsetX,
       offsetY,
-      node
+      node,
+      moved: false, // Reset moved state on new mousedown
+      startX: e.clientX,
+      startY: e.clientY
     };
     
     // Set cursor and add event listeners
