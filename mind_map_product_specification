@@ -41,11 +41,7 @@ left pane will have
 - load button
 
 PO task list (must have):
-1. [+] Improve node slot finding algorithm such that when child nodes add new child nodes, no node should overlap, here is a more detailed explanation with example of how node slot finding right now works and how it should work:
-- when we add child nodes from a node, current slot finding algorithm makes sure all the child nodes from the same parent doesn't overlap. this is how it works right now.
-- what I need is this: let's say from root node I added 2 right childs. let's call these right_child_1 and right_child_2. then I add 2 right childs from right_child_1. let's call these right_child_1_1 and right_child_1_2. then when I add 1 right child from right_child_2, it overlaps with right_child_1_2. I don't want that, if a new node being added is going to overlap with any other node, it should be handled and prevented.
-- to prevent, what needs to be done is, moving the already existing node to upwards or downwards. but not just the node should be moved up/down. that node and all the nodes from that node to the root should be moved up/down bbby the same amount.
-2. [ ] add export as png button
+1. [ ] 
 
 
 P1 task list (should have):
@@ -60,4 +56,5 @@ P2 task list (good to have but stretch):
 
 known bugs/issues:
 1. [ ] export button doesn't ask file name in Safari
-2. [ ] When a node is first added, it is added as a right or left child. But when a node is moved to another direction, it arrow rendering is changed, but not which type of child it is changes. e.g. I have a right child, which can only have a right child. but when I move that right child to left, arrow coming to it makes it left child, but it doesn't actually become a left child, it still can only add a right child.
+2. [ ] export as png doesn't render arrows if they are not visible in the original viewport
+3. [ ] When a node is first added, it is added as a right or left child. But when a node is moved to another direction, it arrow rendering is changed, but not which type of child it is changes. e.g. I have a right child, which can only have a right child. but when I move that right child to left, arrow coming to it makes it left child, but it doesn't actually become a left child, it still can only add a right child.
