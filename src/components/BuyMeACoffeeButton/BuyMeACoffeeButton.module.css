@@ -1,0 +1,37 @@
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 15px;
+  background: #FFDD00;
+  color: #000000;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid rgba(27, 31, 36, 0.15);
+  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.04);
+  transition: all 0.2s ease;
+  font-family: 'Cookie', cursive;
+}
+
+.button:hover, .button:active, .button:focus {
+  text-decoration: none;
+  background-color: #f6f8fa;
+  border-color: rgba(27, 31, 36, 0.3);
+  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.1);
+  color: #000000;
+  opacity: 1;
+}
+
+.image {
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+}
+
+.text {
+  vertical-align: middle;
+  font-size: 18px;
+} 
