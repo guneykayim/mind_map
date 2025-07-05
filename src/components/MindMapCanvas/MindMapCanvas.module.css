@@ -17,6 +17,36 @@
     overflow: visible;
 }
 
+.githubLink {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #24292e;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid rgba(27, 31, 36, 0.15);
+    box-shadow: 0 1px 0 rgba(27, 31, 36, 0.04);
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.githubLink:hover {
+    background-color: #f6f8fa;
+    border-color: rgba(27, 31, 36, 0.3);
+    box-shadow: 0 1px 0 rgba(27, 31, 36, 0.1);
+}
+
+.githubIcon {
+    flex-shrink: 0;
+}
+
 .signature {
     position: absolute;
     bottom: 16px;
