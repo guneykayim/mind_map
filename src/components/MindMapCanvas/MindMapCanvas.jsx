@@ -199,14 +199,14 @@ const MindMapCanvas = ({
   };
 
   return (
-    <div
-      ref={canvasContainerRef} // Attach ref to the container
+    <div 
+      ref={canvasContainerRef}
       className="mind-map"
       onMouseDown={handleMouseDown}
     >
       {selectionRect && (
-        <div
-          className="selection-rectangle"
+        <div 
+          className="selection-rectangle" 
           style={{
             left: Math.min(selectionRect.startX, selectionRect.endX),
             top: Math.min(selectionRect.startY, selectionRect.endY),
@@ -224,6 +224,9 @@ const MindMapCanvas = ({
         <div className="node-layer">
           {renderNodeElements()}
         </div>
+      </div>
+      <div className={styles.signature}>
+        Vibe coded with ❤️ in Cambridge 🇬🇧
       </div>
     </div>
   );

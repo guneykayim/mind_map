@@ -16,3 +16,18 @@
     z-index: 1;
     overflow: visible;
 }
+
+.signature {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 14px;
+    font-style: italic;
+    pointer-events: none;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 4px 8px;
+    border-radius: 4px;
+    backdrop-filter: blur(2px);
+}
