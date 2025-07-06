@@ -1,4 +1,5 @@
 import React from 'react';
+import { MdUndo, MdRedo, MdMyLocation, MdZoomOut, MdZoomIn, MdRefresh } from 'react-icons/md';
 import styles from './CanvasControls.module.css';
 
 const CanvasControls = ({
@@ -34,10 +35,10 @@ const CanvasControls = ({
 
   return (
     <div className={styles['zoom-controls']}>
-      <button onClick={onUndo} title="Undo" disabled={!canUndo}>↩️</button>
-      <button onClick={onRedo} title="Redo" disabled={!canRedo}>↪️</button>
-      <button onClick={handleResetPan} title="Reset View">📍</button>
-      <button onClick={handleZoomOut}>-</button>
+      <button onClick={onUndo} title="Undo" disabled={!canUndo}><MdUndo size={22} /></button>
+      <button onClick={onRedo} title="Redo" disabled={!canRedo}><MdRedo size={22} /></button>
+      <button onClick={handleResetPan} title="Reset View"><MdMyLocation size={22} /></button>
+      <button onClick={handleZoomOut} title="Zoom Out"><MdZoomOut size={22} /></button>
       <input
         type="range"
         min={minZoom}
@@ -47,8 +48,8 @@ const CanvasControls = ({
         onChange={handleSliderChange}
         className={styles['zoom-slider']}
       />
-      <button onClick={handleZoomIn}>+</button>
-      <button onClick={handleResetZoom} className={styles['reset-zoom-button']} title="Reset Zoom">🔄</button>
+      <button onClick={handleZoomIn} title="Zoom In"><MdZoomIn size={22} /></button>
+      <button onClick={handleResetZoom} className={styles['reset-zoom-button']} title="Reset Zoom"><MdRefresh size={24} /></button>
       <span className={styles['zoom-display']}>{Math.round(zoomLevel * 100)}%</span>
     </div>
   );
