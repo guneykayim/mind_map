@@ -93,7 +93,7 @@ describe('useMindMapNodes serialization and deserialization', () => {
         [
           {
             "id": "root",
-            "text": "Root Node",
+            "text": "Start Here",
             "x": 665,
             "y": 368,
             "children": [

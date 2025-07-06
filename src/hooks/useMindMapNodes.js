@@ -22,7 +22,7 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 const initialNodes = [
   {
     id: 'root',
-    text: 'Root Node',
+    text: 'Start Here',
     x: 0,
     y: 0,
     children: []
