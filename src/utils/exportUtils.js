@@ -146,14 +146,44 @@ export const exportAsPng = async (canvasContentRef, nodes, arrowData, nodeRefs) 
 
   try {
     const canvas = await html2canvas(canvasElement, captureOptions);
-
-    // Trigger download
-    const link = document.createElement('a');
-    link.download = 'mind-map.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    const dataUrl = canvas.toDataURL('image/png');
+    if (window.showSaveFilePicker) {
+      try {
+        const options = {
+          suggestedName: 'mind-map.png',
+          types: [
+            {
+              description: 'PNG Image',
+              accept: { 'image/png': ['.png'] },
+            },
+          ],
+        };
+        const handle = await window.showSaveFilePicker(options);
+        const writable = await handle.createWritable();
+        // Convert dataURL to Blob
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        await writable.write(blob);
+        await writable.close();
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          // User cancelled the save dialog
+          console.log('Save operation was cancelled.');
+        } else {
+          console.error('Error saving the PNG file:', err);
+        }
+      }
+    } else {
+      // Fallback for browsers that do not support the API
+      const link = document.createElement('a');
+      link.download = 'mind-map.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   } catch(err) {
-      console.error('Error exporting PNG:', err);
+    console.error('Error exporting PNG:', err);
   } finally {
     // Clean up temporary arrow images
     arrowElements.forEach(el => el.remove());
