@@ -1,7 +1,79 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Node from '../Node/Node';
-import Arrow from '../Arrow/Arrow';
 import styles from './MindMapCanvas.module.css';
+// import Arrow from '../Arrow/Arrow';
+// Draw all arrows on a single canvas for full mind map coverage
+function ArrowsCanvas({ arrowData, nodes }) {
+  const canvasRef = useRef(null);
+  // Compute bounding box
+  const margin = 100;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(node => {
+    if (typeof node.x === 'number' && typeof node.y === 'number') {
+      minX = Math.min(minX, node.x);
+      minY = Math.min(minY, node.y);
+      maxX = Math.max(maxX, node.x);
+      maxY = Math.max(maxY, node.y);
+    }
+  });
+  arrowData.forEach(({ from, to }) => {
+    minX = Math.min(minX, from.x, to.x);
+    minY = Math.min(minY, from.y, to.y);
+    maxX = Math.max(maxX, from.x, to.x);
+    maxY = Math.max(maxY, from.y, to.y);
+  });
+  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+    minX = minY = 0; maxX = maxY = 1000;
+  }
+  const width = Math.ceil(maxX - minX + 2 * margin);
+  const height = Math.ceil(maxY - minY + 2 * margin);
+  const offsetX = minX - margin;
+  const offsetY = minY - margin;
+
+  useEffect(() => {
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0, 0, width, height);
+    arrowData.forEach(({ from, to }) => {
+      ctx.beginPath();
+      ctx.moveTo(from.x - offsetX, from.y - offsetY);
+      ctx.lineTo(to.x - offsetX, to.y - offsetY);
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Arrowhead
+      const angle = Math.atan2(to.y - from.y, to.x - from.x);
+      const headlen = 10;
+      ctx.beginPath();
+      ctx.moveTo(to.x - offsetX, to.y - offsetY);
+      ctx.lineTo(
+        to.x - offsetX - headlen * Math.cos(angle - Math.PI / 6),
+        to.y - offsetY - headlen * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        to.x - offsetX - headlen * Math.cos(angle + Math.PI / 6),
+        to.y - offsetY - headlen * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.lineTo(to.x - offsetX, to.y - offsetY);
+      ctx.fillStyle = '#222';
+      ctx.fill();
+    });
+  }, [arrowData, width, height, offsetX, offsetY]);
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+        zIndex: 0,
+        transform: `translate(${offsetX}px, ${offsetY}px)`
+      }}
+    />
+  );
+}
 import BuyMeACoffeeButton from '../BuyMeACoffeeButton';
 import ViewOnGitHubButton from '../ViewOnGitHubButton/ViewOnGitHubButton';
 
@@ -218,11 +290,10 @@ const MindMapCanvas = ({
         />
       )}
       <div ref={canvasContentRef} style={canvasStyle} className="mind-map-content-container">
-        <svg className={styles.arrowContainer}>
-          {arrowData.map(arrow => (
-            <Arrow key={arrow.id} {...arrow} />
-          ))}
-        </svg>
+        <ArrowsCanvas
+          arrowData={arrowData}
+          nodes={nodes}
+        />
         <div className="node-layer">
           {renderNodeElements()}
         </div>

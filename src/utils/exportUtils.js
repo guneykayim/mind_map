@@ -1,152 +1,97 @@
 import html2canvas from 'html2canvas';
-import { findNodeById } from './nodeTreeUtils';
-
-// Function to convert an SVG element to a Data URI
-const svgToDataUri = (svg) => {
-  const svgString = new XMLSerializer().serializeToString(svg);
-  return `data:image/svg+xml;base64,${btoa(svgString)}`;
-};
-
-// Function to create an image element from an SVG
-const createSvgImage = (svg) => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.src = svgToDataUri(svg);
-  });
-};
 
 // Main export function
 export const exportAsPng = async (canvasContentRef, nodes, arrowData, nodeRefs) => {
   const canvasElement = canvasContentRef.current;
   if (!canvasElement) return;
 
-  // --- Calculate the bounding box of all nodes and arrows ---
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-
-  if (nodeRefs && Object.keys(nodeRefs).length > 0) {
-    for (const nodeId in nodeRefs) {
-      const nodeElement = nodeRefs[nodeId];
-      const node = findNodeById(nodes, nodeId);
-
-      if (nodeElement && node) {
-        const { x, y } = node;
-        const width = nodeElement.offsetWidth;
-        const height = nodeElement.offsetHeight;
-        
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x + width);
-        maxY = Math.max(maxY, y + height);
-      }
+  // 1. Calculate bounding box using DOM positions for nodes
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const containerRect = canvasElement.getBoundingClientRect();
+  // Nodes: use DOM positions
+  Object.values(nodeRefs || {}).forEach(nodeEl => {
+    if (nodeEl && nodeEl.getBoundingClientRect) {
+      const rect = nodeEl.getBoundingClientRect();
+      const left = rect.left - containerRect.left;
+      const top = rect.top - containerRect.top;
+      const right = rect.right - containerRect.left;
+      const bottom = rect.bottom - containerRect.top;
+      minX = Math.min(minX, left);
+      minY = Math.min(minY, top);
+      maxX = Math.max(maxX, right);
+      maxY = Math.max(maxY, bottom);
     }
-
-    arrowData.forEach(arrow => {
-      minX = Math.min(minX, arrow.from.x, arrow.to.x);
-      minY = Math.min(minY, arrow.from.y, arrow.to.y);
-      maxX = Math.max(maxX, arrow.from.x, arrow.to.x);
-      maxY = Math.max(maxY, arrow.from.y, arrow.to.y);
-    });
-
-    const padding = 50;
-    minX -= padding;
-    minY -= padding;
-    maxX += padding;
-    maxY += padding;
+  });
+  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+    minX = minY = 0; maxX = maxY = 1000;
   }
+  // Add a small fixed margin for comfort
+  const margin = 32;
+  minX -= margin;
+  minY -= margin;
+  maxX += margin;
+  maxY += margin;
+  const exportWidth = Math.ceil(maxX - minX);
+  const exportHeight = Math.ceil(maxY - minY);
 
+  // 2. Create a temporary wrapper div to offset all content to (0,0)
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'relative';
+  wrapper.style.width = exportWidth + 'px';
+  wrapper.style.height = exportHeight + 'px';
+  wrapper.style.overflow = 'visible';
+  wrapper.style.background = '#fff';
+
+  // Move all children of canvasElement into wrapper, and offset them
+  const children = Array.from(canvasElement.childNodes);
+  children.forEach(child => {
+    if (child.nodeType === 1) {
+      const el = child;
+      // Save original transform and position
+      el._originalTransform = el.style.transform;
+      el._originalLeft = el.style.left;
+      el._originalTop = el.style.top;
+      // Offset by -minX, -minY
+      el.style.transform = `translate(${-minX}px, ${-minY}px)` + (el.style.transform ? ' ' + el.style.transform : '');
+    }
+    wrapper.appendChild(child);
+  });
+  canvasElement.appendChild(wrapper);
+
+  // 3. Use html2canvas to capture the full area
   const captureOptions = {
     useCORS: true,
     allowTaint: true,
     backgroundColor: '#ffffff',
+    width: exportWidth,
+    height: exportHeight,
+    x: 0,
+    y: 0,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: exportWidth,
+    windowHeight: exportHeight,
   };
 
-  if (isFinite(minX)) {
-    captureOptions.x = minX;
-    captureOptions.y = minY;
-    captureOptions.width = maxX - minX;
-    captureOptions.height = maxY - minY;
-  }
-  
-  // --- Temporarily add arrows as images for capture ---
-  const arrowElements = [];
-
-  for (const arrow of arrowData) {
-    // This is a simplified arrow rendering. 
-    // We'll need to adjust this based on the actual Arrow component.
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    svg.style.position = 'absolute';
-    svg.style.left = 0;
-    svg.style.top = 0;
-    
-    // Create a group for the arrow parts
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', arrow.from.x);
-    line.setAttribute('y1', arrow.from.y);
-    line.setAttribute('x2', arrow.to.x);
-    line.setAttribute('y2', arrow.to.y);
-    line.setAttribute('stroke', 'black');
-    line.setAttribute('stroke-width', '2');
-    
-    g.appendChild(line);
-    
-    // Arrowhead
-    const angle = Math.atan2(arrow.to.y - arrow.from.y, arrow.to.x - arrow.from.x);
-    const headLength = 10;
-    
-    const x1 = arrow.to.x - headLength * Math.cos(angle - Math.PI / 6);
-    const y1 = arrow.to.y - headLength * Math.sin(angle - Math.PI / 6);
-    const x2 = arrow.to.x - headLength * Math.cos(angle + Math.PI / 6);
-    const y2 = arrow.to.y - headLength * Math.sin(angle + Math.PI / 6);
-
-    const headLine1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    headLine1.setAttribute('x1', arrow.to.x);
-    headLine1.setAttribute('y1', arrow.to.y);
-    headLine1.setAttribute('x2', x1);
-    headLine1.setAttribute('y2', y1);
-    headLine1.setAttribute('stroke', 'black');
-    headLine1.setAttribute('stroke-width', '2');
-    
-    const headLine2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    headLine2.setAttribute('x1', arrow.to.x);
-    headLine2.setAttribute('y1', arrow.to.y);
-    headLine2.setAttribute('x2', x2);
-    headLine2.setAttribute('y2', y2);
-    headLine2.setAttribute('stroke', 'black');
-    headLine2.setAttribute('stroke-width', '2');
-    
-    g.appendChild(headLine1);
-    g.appendChild(headLine2);
-    
-    svg.appendChild(g);
-
-    try {
-      const img = await createSvgImage(svg);
-      img.style.position = 'absolute';
-      img.style.left = `0px`;
-      img.style.top = `0px`;
-      img.style.width = '100%';
-      img.style.height = '100%';
-      img.style.pointerEvents = 'none';
-
-      canvasElement.appendChild(img);
-      arrowElements.push(img);
-
-    } catch(err) {
-      console.error('Failed to create SVG image', err);
-    }
-  }
-
   try {
-    const canvas = await html2canvas(canvasElement, captureOptions);
+    const canvas = await html2canvas(wrapper, captureOptions);
     const dataUrl = canvas.toDataURL('image/png');
+
+    // 4. Restore original DOM structure and styles
+    children.forEach(child => {
+      if (child.nodeType === 1) {
+        const el = child;
+        el.style.transform = el._originalTransform || '';
+        el.style.left = el._originalLeft || '';
+        el.style.top = el._originalTop || '';
+        delete el._originalTransform;
+        delete el._originalLeft;
+        delete el._originalTop;
+      }
+      canvasElement.appendChild(child);
+    });
+    if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+
     if (window.showSaveFilePicker) {
       try {
         const options = {
@@ -184,8 +129,5 @@ export const exportAsPng = async (canvasContentRef, nodes, arrowData, nodeRefs) 
     }
   } catch(err) {
     console.error('Error exporting PNG:', err);
-  } finally {
-    // Clean up temporary arrow images
-    arrowElements.forEach(el => el.remove());
   }
-}; 
+};

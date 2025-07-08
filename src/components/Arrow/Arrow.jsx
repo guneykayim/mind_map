@@ -1,51 +1,50 @@
-import React from 'react';
-import styles from './Arrow.module.css';
+import React, { useRef, useEffect } from 'react';
 
-// Component to render an arrow between two points
-const Arrow = ({ from, to }) => {
-  // Calculate the angle of the line
-  const angle = Math.atan2(to.y - from.y, to.x - from.x);
-  const headLength = 10; // Length of the arrow head
-  
-  // Use the exact 'to' point as the end of the line
-  // The App component is already calculating the exact edge points
-  const endX = to.x;
-  const endY = to.y;
-  
-  // Calculate the points for the arrow head
-  // Position the arrow head slightly inside the line for better visual
-  const arrowBaseX = endX - Math.cos(angle) * headLength * 0.5;
-  const arrowBaseY = endY - Math.sin(angle) * headLength * 0.5;
-  
-  const x1 = arrowBaseX - headLength * Math.cos(angle - Math.PI / 6);
-  const y1 = arrowBaseY - headLength * Math.sin(angle - Math.PI / 6);
-  const x2 = arrowBaseX - headLength * Math.cos(angle + Math.PI / 6);
-  const y2 = arrowBaseY - headLength * Math.sin(angle + Math.PI / 6);
+// Canvas-based Arrow renderer for a single arrow
+const Arrow = ({ from, to, width, height }) => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.clearRect(0, 0, width, height);
+    // Draw line
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Draw arrowhead
+    const angle = Math.atan2(to.y - from.y, to.x - from.x);
+    const headlen = 10;
+    ctx.beginPath();
+    ctx.moveTo(to.x, to.y);
+    ctx.lineTo(
+      to.x - headlen * Math.cos(angle - Math.PI / 6),
+      to.y - headlen * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.lineTo(
+      to.x - headlen * Math.cos(angle + Math.PI / 6),
+      to.y - headlen * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.lineTo(to.x, to.y);
+    ctx.fillStyle = '#222';
+    ctx.fill();
+  }, [from, to, width, height]);
 
   return (
-    <g>
-      <line
-        x1={from.x}
-        y1={from.y}
-        x2={endX}
-        y2={endY}
-        className={styles.arrowLine}
-      />
-      <line
-        x1={endX}
-        y1={endY}
-        x2={x1}
-        y2={y1}
-        className={styles.arrowLine}
-      />
-      <line
-        x1={endX}
-        y1={endY}
-        x2={x2}
-        y2={y2}
-        className={styles.arrowLine}
-      />
-    </g>
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    />
   );
 };
 
