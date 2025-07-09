@@ -35,8 +35,8 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message }) => {
         <h3 className={styles.title}>{title}</h3>
         <p className={styles.message}>{message}</p>
         <div className={styles.actions}>
-          <Button onClick={onClose} variant="secondary">Cancel</Button>
-          <Button onClick={handleConfirm} variant="primary">Confirm</Button>
+          <Button onClick={onClose} variant="passive">Cancel</Button>
+          <Button onClick={handleConfirm} variant="passiveDanger">Confirm</Button>
         </div>
       </div>
     </div>
